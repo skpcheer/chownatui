@@ -248,3 +248,8 @@ label>input,label>select,label>textarea{margin-top:8px}
 .announcement-media img{width:100%;height:110px;object-fit:cover;border-radius:11px;border:1px solid #20324b}
 .announcement-media .announcement-direct-link{margin:0;justify-content:center}
 @media(max-width:700px){.announcement-media img{height:150px}}
+
+/* v2.9.1: member profile size + event color coding */
+.member-card .member-head .avatar{width:58px;height:58px;min-width:58px}.member-card .member-head h3{margin-bottom:0;line-height:1.15}.member-card .member-real-name-line{margin-top:1px;line-height:1.2}.color-picker-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}.color-swatch{width:30px;height:30px;padding:4px;border:1px solid #26364e;border-radius:9px;background:#0b1321;display:grid;place-items:center;cursor:pointer}.color-swatch span{display:block;width:18px;height:18px;border-radius:6px;background:var(--swatch)}.color-swatch.active{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.16)}.calendar-event{border-left:3px solid var(--event-color,#4f8cff)!important}.calendar-detail-item,.event-row,.plan-card{border-left:4px solid var(--event-color,#4f8cff)}
+
+.custom-color-swatch{width:30px;height:30px;padding:4px;border:1px solid #26364e;border-radius:9px;background:#0b1321;display:grid;place-items:center;cursor:pointer;position:relative}.custom-color-swatch input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;margin:0}.custom-color-swatch span{display:block;width:18px;height:18px;border-radius:6px;border:1px solid rgba(255,255,255,.2)}.custom-color-swatch:hover{border-color:#4f84bd}.color-value{display:block;margin-top:5px;color:var(--muted);font-size:10px;letter-spacing:.04em}
