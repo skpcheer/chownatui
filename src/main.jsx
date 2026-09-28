@@ -366,8 +366,8 @@ function AttendanceStats({data, members}) {
       <div className="print-attendance">
         <h1>รายงานการเช็คชื่อ</h1>
         <div className="print-meta">วันที่ {fmt(date)} · {type==='rehearsal'?'ซ้อมน้อง':type==='evening'?'อยู่เย็น':'นอนโรงเรียน'} · {filter==='all'?'ทั้งหมด':filter}</div>
-        <table><thead><tr><th>ลำดับ</th><th>ชื่อ-สกุล</th><th>ชื่อเล่น</th><th>สถานะ</th></tr></thead><tbody>
-          {filtered.map((row,i)=>{const member=members.find(x=>x.id===row.member_id);return <tr key={row.id}><td>{member?.sort_no||i+1}</td><td>{member?.full_name||'ไม่พบข้อมูล'}</td><td>{member?.nickname||''}</td><td>{row.status}</td></tr>})}
+        <table><thead><tr><th>ลำดับ</th><th>ชื่อ-สกุล</th><th>ชั้น</th><th>ชื่อเล่น</th><th>สถานะ</th></tr></thead><tbody>
+          {filtered.map((row,i)=>{const member=members.find(x=>x.id===row.member_id);return <tr key={row.id}><td>{member?.sort_no||i+1}</td><td>{member?.full_name||'ไม่พบข้อมูล'}</td><td>{member?.class_name||''}</td><td>{member?.nickname||''}</td><td>{row.status}</td></tr>})}
         </tbody></table>
       </div>
     </div>

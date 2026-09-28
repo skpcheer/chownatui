@@ -142,8 +142,9 @@ label>input,label>select,label>textarea{margin-top:8px}
  .print-attendance table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.5pt}
  .print-attendance th,.print-attendance td{border:1px solid #777;padding:1.5mm 2mm;line-height:1.1}
  .print-attendance th{font-weight:700;background:#eee}
- .print-attendance th:nth-child(1),.print-attendance td:nth-child(1){width:12%}
- .print-attendance th:nth-child(2),.print-attendance td:nth-child(2){width:55%}
+ .print-attendance th:nth-child(1),.print-attendance td:nth-child(1){width:10%}
+ .print-attendance th:nth-child(2),.print-attendance td:nth-child(2){width:40%}
  .print-attendance th:nth-child(3),.print-attendance td:nth-child(3){width:15%}
- .print-attendance th:nth-child(4),.print-attendance td:nth-child(4){width:18%}
+ .print-attendance th:nth-child(4),.print-attendance td:nth-child(4){width:15%}
+ .print-attendance th:nth-child(5),.print-attendance td:nth-child(5){width:20%}
 }
