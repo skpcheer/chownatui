@@ -80,3 +80,12 @@ npm run build
 - UI ตัวเลือกวันที่แบบรวมปุ่มแสดงวันที่ + ลูกศร
 - หน้าลงเวลาแบบกด “อัปเดตเวลาชีวิต” แล้วกรอกในหน้าต่าง
 - แยกแท็บเช็คชื่อและเวรทำความสะอาดออกจาก “จัดการตุ้ย”
+
+## v10 update
+- Added profile birthday field and birthday greeting on the home page.
+- Added select-all / clear-all participants in appointments.
+- Changed all-member cards to a horizontal scroll layout.
+- Added attendance history detail popup with filter buttons.
+- Refined role and permissions management UI.
+
+Before deploying, run `supabase/migration-v10-birthday.sql` in Supabase SQL Editor once.
