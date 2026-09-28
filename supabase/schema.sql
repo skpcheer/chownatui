@@ -71,3 +71,7 @@ create table if not exists public.day_status (
 alter table public.day_status enable row level security;
 create policy if not exists "day status readable by authenticated" on public.day_status for select to authenticated using (true);
 create policy if not exists "users manage own day status" on public.day_status for all to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+
+
+-- Optional note attached to an availability interval
+alter table public.availability add column if not exists notes text;

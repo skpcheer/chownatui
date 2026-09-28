@@ -39,3 +39,11 @@ alter table public.profiles add column if not exists avatar_scale numeric not nu
 
 -- Horizontal crop position for profile pictures (-50 left to 50 right)
 alter table public.profiles add column if not exists avatar_x numeric not null default 0 check (avatar_x >= -50 and avatar_x <= 50);
+
+
+-- Optional note for each availability interval
+alter table public.availability add column if not exists notes text;
+
+-- Avatar crop settings used by the profile crop dialog
+alter table public.profiles add column if not exists avatar_scale numeric not null default 1 check (avatar_scale >= 1 and avatar_scale <= 2.5);
+alter table public.profiles add column if not exists avatar_x numeric not null default 0 check (avatar_x >= -50 and avatar_x <= 50);
