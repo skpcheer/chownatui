@@ -1,42 +1,26 @@
 # chownatui
 
-เว็บจัดการเวลาทีม + งาน สำหรับช่วงวันที่ 27 ก.ย. 2026 ถึง 31 ต.ค. 2026
+Mobile-first team availability and work scheduling app built with React + Vite + Supabase.
 
-## Stack
-- React + Vite
-- Supabase Auth + Postgres + RLS
-- Vercel
-
-## Environment variables
-Create `.env.local` for local development:
-
-```env
-VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-```
-
-Use the same two variables in Vercel Project Settings → Environment Variables.
-Never put a Supabase secret/service_role key in this frontend.
+## Features
+- Supabase email/password authentication
+- Member/Admin roles with RLS
+- Explicit day status: ยังไม่ลงเวลา / ว่าง / ไม่ว่าง
+- Status confirmation before saving
+- Multiple availability intervals with job-overlap checks
+- Team overview
+- Monthly shared calendar for Sep-Oct 2026 with daily jobs
+- Admin job management and member assignment
+- Profile settings: display name, avatar, bio, password
+- Vercel-ready
 
 ## Supabase setup
-1. Run the original `supabase/schema.sql` once if the database is empty.
-2. Run `supabase/migration-production.sql` once to harden role permissions and enforce no availability/job overlaps.
-3. Create your first Auth user.
-4. Promote that account to Admin in SQL Editor:
+1. Run `supabase/schema.sql` if starting from scratch.
+2. Run `supabase/migration-production.sql`.
+3. Run `supabase/profile-settings.sql` once to enable avatars/bio.
 
-```sql
-update public.profiles
-set role='admin'
-where email='YOUR_EMAIL';
-```
+## Vercel environment variables
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-## Local run
-
-```bash
-npm install
-npm run dev
-```
-
-## Vercel
-Import the repository into Vercel, set the two environment variables above, then deploy.
-The included `vercel.json` rewrites all routes to `index.html` for the Vite SPA.
+Never put a Supabase secret/service-role key in the frontend.
