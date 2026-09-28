@@ -99,7 +99,7 @@ function Auth({mode,setMode,error,setError}){
   {mode==='signup'&&<label>รหัสเข้าทีม<input type="text" value={teamCode} onChange={e=>setTeamCode(e.target.value)} placeholder="" autoCapitalize="characters" required/></label>}
   {(error||msg)&&<div className={error?'error':'notice'}>{error||msg}</div>}
   <button className="primary wide" disabled={busy}>{busy?'กำลังดำเนินการ...':mode==='login'?'เข้าสู่ระบบ':'สร้างบัญชี'}</button></form>
-  <small>บัญชีใหม่จะเริ่มต้นเป็นสมาตุ้ย และผู้มีสิทธิ์สามารถกำหนดฝ่าย/ยศภายหลัง</small></div></div>
+  </div></div>
 }
 
 function Avatar({user,className=''}){return user?.avatar_url?<span className={`avatar avatar-frame ${className}`}><img className="avatar-img" style={{'--avatar-scale':user.avatar_scale||1,'--avatar-x':`${user.avatar_x||0}%`,'--avatar-y':`${user.avatar_y||0}%`}} src={user.avatar_url} alt=""/></span>:<div className={`avatar ${className}`}>{user?.display_name?.[0]||'U'}</div>}
