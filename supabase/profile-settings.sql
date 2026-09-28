@@ -33,3 +33,6 @@ create policy "avatars own delete"
 on storage.objects for delete
 to authenticated
 using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Avatar zoom/crop scale for profile pictures
+alter table public.profiles add column if not exists avatar_scale numeric not null default 1 check (avatar_scale >= 1 and avatar_scale <= 2.5);
