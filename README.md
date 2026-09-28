@@ -89,3 +89,6 @@ npm run build
 - Refined role and permissions management UI.
 
 Before deploying, run `supabase/migration-v10-birthday.sql` in Supabase SQL Editor once.
+
+## V20 planning update
+Run `supabase/migration-v20-planning-range.sql` in Supabase SQL Editor before deploying V20. It adds end dates to plans/appointments and seeds the requested position titles.
