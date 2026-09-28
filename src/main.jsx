@@ -4,7 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import {
  CalendarDays,Clock3,Users,ClipboardList,Settings,LogOut,Plus,Trash2,Edit3,ChevronLeft,ChevronRight,
  Shield,MapPin,Search,X,UserPlus,Camera,Save,LockKeyhole,CalendarRange,CheckCircle2,ClipboardCheck,
- BriefcaseBusiness,UserCog,Menu,RefreshCw,Shuffle,Timer,Home as HomeIcon,ZoomIn,ZoomOut,Move,Check
+ BriefcaseBusiness,UserCog,Menu,Shuffle,Timer,Home as HomeIcon,ZoomIn,ZoomOut,Move,Check
 } from 'lucide-react';
 import './styles.css';
 
@@ -122,9 +122,9 @@ function Dashboard({me,data,refresh,setProfile,logout}){
  ];
  const title=nav.find(x=>x[0]===page)?.[1]||'หน้าหลัก';
  const go=p=>{setPage(p);setMobileOpen(false)};
- return <div className="app"><aside><div className="brand side">chownatui<span>.</span><small className="app-version">V2.0</small></div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
+ return <div className="app"><aside><div className="brand side">chownatui<span>.</span><small className="app-version">V2.1</small></div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
   <div className="side-bottom"><div className="me"><Avatar user={me}/><div><b>{me.display_name}</b><small>{roleLabel(me,data)}{me.team?` · ${me.team}`:''}</small></div></div><button className="nav" onClick={logout}><LogOut size={18}/>ออกจากระบบ</button></div></aside>
-  <main><header><div><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)}><Menu/></button><div className="mobile-brand">chownatui<span>.</span></div><h1>{title}</h1></div><div className="header-actions"><button className="icon-btn" onClick={refresh} title="รีเฟรช"><RefreshCw size={17}/></button><button className="icon-btn" onClick={()=>go('settings')}><Settings size={18}/></button></div></header>
+  <main><header><div><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)}><Menu/></button><div className="mobile-brand">chownatui<span>.</span></div><h1>{title}</h1></div><div className="header-actions"><button className="icon-btn" onClick={()=>go('settings')}><Settings size={18}/></button></div></header>
   {mobileOpen&&<div className="mobile-drawer">{nav.map(([id,t,I])=><button className={page===id?'active':''} key={id} onClick={()=>go(id)}><I size={17}/>{t}</button>)}</div>}
   {page==='home'&&<Home me={me} data={data} date={date} setDate={setDate} go={go}/>}
   {page==='calendar'&&<CalendarPage me={me} data={data} date={date} setDate={setDate}/>}

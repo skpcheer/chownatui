@@ -191,4 +191,4 @@ label>input,label>select,label>textarea{margin-top:8px}
 @media(max-width:800px){.plan-columns{grid-template-columns:1fr}.date-range-bar{flex-wrap:wrap}.date-range-bar label{min-width:130px}.date-range-bar>span{display:none}}
 
 /* App version label */
-.brand.side{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.brand.side .app-version{display:block;font-size:10px;line-height:1.2;font-weight:700;letter-spacing:.08em;color:var(--muted,#8a93a5);margin-left:1px}
+.brand.side{display:flex;flex-direction:column;align-items:flex-start;gap:0}.brand.side .app-version{display:block;font-size:10px;line-height:1;font-weight:700;letter-spacing:.06em;color:var(--muted,#8a93a5);margin-left:1px;margin-top:-1px}
