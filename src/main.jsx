@@ -77,6 +77,7 @@ function Auth({mode,setMode,error,setError}){
    }
   } else {
    if(!name.trim())throw new Error('กรุณาใส่ชื่อที่จะแสดง');
+   if(teamCode.trim()!==TEAM_CODE)throw new Error('รหัสเข้าทีมไม่ถูกต้อง');
    const r=await supabase.auth.signUp({email:normalizedEmail,password:pw,options:{data:{display_name:name.trim()}}});
    if(r.error){
     if(/already|registered|exists|duplicate/i.test(r.error.message||'')) throw new Error('อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
@@ -91,9 +92,9 @@ function Auth({mode,setMode,error,setError}){
   <form onSubmit={submit}>{mode==='signup'&&<label>ชื่อที่จะแสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="เช่น กอตอ" required/></label>}
   <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></label>
   <label>Password<input type="password" value={pw} onChange={e=>setPw(e.target.value)} minLength={6} required/></label>
+  {mode==='signup'&&<label>รหัสเข้าทีม<input type="text" value={teamCode} onChange={e=>setTeamCode(e.target.value)} placeholder="CHOWNATUI888" autoCapitalize="characters" required/></label>}
   {(error||msg)&&<div className={error?'error':'notice'}>{error||msg}</div>}
   <button className="primary wide" disabled={busy}>{busy?'กำลังดำเนินการ...':mode==='login'?'เข้าสู่ระบบ':'สร้างบัญชี'}</button></form>
-  {mode==='signup'&&<button className="link wide-link" onClick={resend}>ส่งอีเมลยืนยันอีกครั้ง</button>}
   <small>บัญชีใหม่จะเริ่มต้นเป็นสมาตุ้ย และผู้มีสิทธิ์สามารถกำหนดฝ่าย/ยศภายหลัง</small></div></div>
 }
 
