@@ -110,24 +110,9 @@ language sql stable security definer set search_path=public as $$
   select public.current_role() in ('head','teacher','deputy');
 $$;
 
-insert into public.custom_roles(name)
-select x.name
-from (values
- ('ประธานเชียร์'),
- ('รองประธานเชียร์'),
- ('ประธานฝ่ายโค้ด'),
- ('รองประธานฝ่ายโค้ด'),
- ('ประธานฝ่ายเทคนิค'),
- ('รองประธานฝ่ายเทคนิค'),
- ('ประธานฝ่ายอุปกรณ์'),
- ('รองประธานฝ่ายอุปกรณ์'),
- ('ประธานฝ่ายโลจิสติกส์'),
- ('รองประธานฝ่ายโลจิสติกส์'),
- ('ประธานฝ่ายลีดเดอร์'),
- ('รองประธานลีดเดอร์'),
- ('ศิษย์เก่า')
-) as x(name)
-where not exists (select 1 from public.custom_roles r where r.name=x.name);
+-- V2.7: leadership titles are department positions, not custom roles.
+-- Do not seed them into custom_roles here.
+
 
 -- RLS only adds missing policies; it does not replace existing policies.
 alter table public.appointments enable row level security;
