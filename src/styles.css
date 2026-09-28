@@ -211,3 +211,13 @@ label>input,label>select,label>textarea{margin-top:8px}
 .calendar-today-card{margin-top:18px}.calendar-detail-list{display:flex;flex-direction:column;gap:12px}.calendar-detail-item{padding:16px;border:1px solid var(--line);border-radius:14px;background:#0b1321}.calendar-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.calendar-detail-head h3{margin:3px 0 0;font-size:16px}.calendar-detail-meta{margin-top:8px;color:#8fa0b8;font-size:11px}.calendar-detail-section{margin-top:13px;padding-top:11px;border-top:1px solid #17243a}.calendar-detail-section>b{font-size:11px;color:#aebed2}.calendar-detail-section p{margin:6px 0 0;color:#aeb8c7;font-size:12px;white-space:pre-wrap}.detail-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.detail-chips span{font-size:10px;padding:5px 7px;border-radius:8px;background:#111d30;color:#b9c9dc}.calendar-detail-section .people{margin-top:7px}
 .date-range-bar .range-separator{align-self:center;margin:0!important;padding:0 2px!important;line-height:40px!important}.date-range-bar{gap:12px}.date-range-bar label{gap:6px}
 @media(max-width:800px){.position-controls{width:100%;flex-direction:column;align-items:stretch}.position-controls .role-select,.position-controls .special-team-select{width:100%}.member-info-grid{grid-template-columns:1fr 1fr}.member-info-grid>div:last-child{grid-column:1/-1}}
+
+/* v2.8: weekly cleaning calendar + combined role/position assignment */
+.week-grid{grid-template-columns:repeat(7,minmax(0,1fr))}
+.combined-assignment{align-items:center}
+.combined-controls{display:flex;align-items:center;gap:8px;min-width:0}
+.combined-controls .role-select{width:170px;min-width:170px!important}
+.combined-controls .special-team-select{width:145px;min-width:145px!important}
+.alumni-generation{width:78px!important;min-width:78px;height:40px;margin:0!important;padding:10px 9px!important;border:1px solid var(--line)!important;border-radius:10px!important;background:#080e19!important;color:#fff!important}
+@media(max-width:1100px){.week-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.combined-assignment{align-items:flex-start}.combined-controls{flex-wrap:wrap;width:100%}.combined-controls .role-select{flex:1;min-width:180px!important}.combined-controls .special-team-select{flex:1;min-width:160px!important}}
+@media(max-width:800px){.week-grid{grid-template-columns:1fr 1fr}.combined-controls{width:100%;flex-direction:column;align-items:stretch}.combined-controls .role-select,.combined-controls .special-team-select,.alumni-generation{width:100%!important;min-width:0!important}}
