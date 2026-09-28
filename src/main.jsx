@@ -10,7 +10,7 @@ import './styles.css';
 
 const URL=import.meta.env.VITE_SUPABASE_URL, KEY=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const supabase=(URL&&KEY)?createClient(URL,KEY):null;
-const TEAMS=['โค้ด','เทคนิค','อุปกรณ์','โลจิสติกส์','ลีดเดอร์'];
+const DEFAULT_TEAMS=['โค้ด','เทคนิค','อุปกรณ์','โลจิสติกส์','ลีดเดอร์'];
 const PLAN_TYPES=['งานฝ่าย','งานหลัก','ซ้อมเชียร์'];
 const DUTIES=['กราว','ประสานงาน','ประสานโสต','ประสานสต๊าฟ','Hแถว','Timekepper','ม้าเร็ว',
 'ประจำห้อง 1/1','ประจำห้อง 1/2','ประจำห้อง 1/3','ประจำห้อง 1/4','ประจำห้อง 1/5','ประจำห้อง 1/6',
@@ -18,8 +18,10 @@ const DUTIES=['กราว','ประสานงาน','ประสาน�
 const APPOINTMENT_TYPES=['ซ้อมน้อง','อยู่เย็น','นอนโรงเรียน','ถ่ายคลิป','อื่นๆ'];
 const CLEAN_ROOMS=['ห้องเชียร์','ห้องอุปกรณ์','ห้องคอม','ห้องนอน','ห้องน้ำ','หอประชุม'];
 const ATT_TYPES={rehearsal:['มา','ลากิจ/ลาป่วย','ไม่มา'],evening:['อยู่เย็น','ลากิจ/ลาป่วย','ไม่อยู่'],sleep:['อยู่ดึก','นอนโรงเรียน','ลากิจ/ลาป่วย','ไม่อยู่']};
-const ROLE_LABEL={head:'หัวหน้าตุ้ย',deputy:'รองหัวตุ้ย',member:'สมาตุ้ย'};
-const roleRank={member:0,deputy:1,head:2};
+const ROLE_LABEL={head:'หัวหน้าตุ้ย',teacher:'อาจารย์ตุ้ย',deputy:'รองหัวตุ้ย',member:'สมาตุ้ย'};
+const roleRank={member:0,deputy:1,head:2,teacher:2};
+const roleLabel=(u,data)=>data?.customRoles?.find(r=>r.id===u?.custom_role_id)?.name || ROLE_LABEL[u?.role] || 'สมาตุ้ย';
+const isFullAdmin=u=>u?.role==='head'||u?.role==='teacher';
 const fmt=d=>d?new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric'}).format(new Date(d+'T00:00:00')):'';
 const todayISO=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
 const timeToMin=t=>{const [h,m]=String(t||'00:00').slice(0,5).split(':').map(Number);return h*60+m};
@@ -27,7 +29,7 @@ const overlap=(a,b)=>timeToMin(a.start_time||a.start)<timeToMin(b.end_time||b.en
 const esc=(v)=>String(v||'');
 
 async function loadData(){
- const p=await supabase.from('profiles').select('id,email,display_name,role,team,avatar_url,avatar_scale,avatar_x,avatar_y,bio,birthday,created_at').order('display_name');
+ const p=await supabase.from('profiles').select('id,email,display_name,role,custom_role_id,team,avatar_url,avatar_scale,avatar_x,avatar_y,bio,birthday,created_at').order('display_name');
  if(p.error)throw p.error;
  const queries=await Promise.all([
   supabase.from('availability').select('*').order('date').order('start_time'),
@@ -42,19 +44,21 @@ async function loadData(){
   supabase.from('attendance').select('*').order('date', {ascending:false}),
   supabase.from('cleaning_duties').select('*').order('date'),
   supabase.from('checkin_members').select('*').order('sort_no'),
-  supabase.from('settings').select('*')
+  supabase.from('settings').select('*'),
+  supabase.from('custom_roles').select('*').order('name'),
+  supabase.from('team_options').select('*').order('sort_order').order('name')
  ]);
  for(const q of queries)if(q.error)throw q.error;
- const [a,s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings]=queries.map(x=>x.data||[]);
- return {users:p.data||[],avail:a,dayStatus:s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings};
+ const [a,s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings,customRoles,teamOptions]=queries.map(x=>x.data||[]);
+ return {users:p.data||[],avail:a,dayStatus:s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings,customRoles,teamOptions};
 }
 
 function App(){
- const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[data,setData]=useState({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],planMembers:[],appointmentMembers:[],planSlots:[]}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[authMode,setAuthMode]=useState('login');
+ const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[data,setData]=useState({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[]}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[authMode,setAuthMode]=useState('login');
  const refresh=async()=>{try{setError('');const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===session?.user?.id)||null)}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}};
  useEffect(()=>{if(!supabase){setError('ยังไม่ได้ตั้งค่า Supabase');setLoading(false);return}
   supabase.auth.getSession().then(async({data})=>{setSession(data.session);if(data.session){try{const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===data.session.user.id)||null)}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}}setLoading(false)});
-  const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);if(!s){setProfile(null);setData({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],planMembers:[],appointmentMembers:[],planSlots:[]})}});return()=>l.subscription.unsubscribe()},[]);
+  const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);if(!s){setProfile(null);setData({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[]})}});return()=>l.subscription.unsubscribe()},[]);
  if(loading)return <div className="auth"><div className="auth-card"><div className="brand">chownatui<span>.</span></div><p className="tag">กำลังเชื่อมต่อระบบ...</p></div></div>;
  if(!session||!profile)return <Auth mode={authMode} setMode={setAuthMode} error={error} setError={setError}/>;
  return <Dashboard me={profile} data={data} refresh={refresh} setProfile={setProfile} error={error} logout={async()=>{await supabase.auth.signOut();setSession(null)}}/>;
@@ -92,7 +96,7 @@ function Auth({mode,setMode,error,setError}){
   <form onSubmit={submit}>{mode==='signup'&&<label>ชื่อที่จะแสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="เช่น กอตอ" required/></label>}
   <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></label>
   <label>Password<input type="password" value={pw} onChange={e=>setPw(e.target.value)} minLength={6} required/></label>
-  {mode==='signup'&&<label>รหัสเข้าทีม<input type="text" value={teamCode} onChange={e=>setTeamCode(e.target.value)} placeholder="CHOWNATUI888" autoCapitalize="characters" required/></label>}
+  {mode==='signup'&&<label>รหัสเข้าทีม<input type="text" value={teamCode} onChange={e=>setTeamCode(e.target.value)} placeholder="" autoCapitalize="characters" required/></label>}
   {(error||msg)&&<div className={error?'error':'notice'}>{error||msg}</div>}
   <button className="primary wide" disabled={busy}>{busy?'กำลังดำเนินการ...':mode==='login'?'เข้าสู่ระบบ':'สร้างบัญชี'}</button></form>
   <small>บัญชีใหม่จะเริ่มต้นเป็นสมาตุ้ย และผู้มีสิทธิ์สามารถกำหนดฝ่าย/ยศภายหลัง</small></div></div>
@@ -102,7 +106,7 @@ function Avatar({user,className=''}){return user?.avatar_url?<span className={`a
 
 function Dashboard({me,data,refresh,setProfile,logout}){
  const [page,setPage]=useState('home'),[date,setDate]=useState(todayISO()),[mobileOpen,setMobileOpen]=useState(false);
- const canDeputy=roleRank[me.role]>=1, canHead=me.role==='head';
+ const canDeputy=roleRank[me.role]>=1, canHead=isFullAdmin(me);
  const nav=[
   ['home','หน้าหลัก',HomeIcon],['calendar','ปฏิทิน',CalendarRange],
   ['appointments','นัดหมาย',CalendarDays],['availability','ลงเวลา',Clock3],...(canDeputy?[['attendance','เช็คชื่อ',ClipboardCheck],['cleaning','เวรทำความสะอาด',ClipboardList]]:[]),['members','สมาตุ้ยทั้งหมด',Users],
@@ -111,7 +115,7 @@ function Dashboard({me,data,refresh,setProfile,logout}){
  const title=nav.find(x=>x[0]===page)?.[1]||'หน้าหลัก';
  const go=p=>{setPage(p);setMobileOpen(false)};
  return <div className="app"><aside><div className="brand side">chownatui<span>.</span></div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
-  <div className="side-bottom"><div className="me"><Avatar user={me}/><div><b>{me.display_name}</b><small>{ROLE_LABEL[me.role]}{me.team?` · ${me.team}`:''}</small></div></div><button className="nav" onClick={logout}><LogOut size={18}/>ออกจากระบบ</button></div></aside>
+  <div className="side-bottom"><div className="me"><Avatar user={me}/><div><b>{me.display_name}</b><small>{roleLabel(me,data)}{me.team?` · ${me.team}`:''}</small></div></div><button className="nav" onClick={logout}><LogOut size={18}/>ออกจากระบบ</button></div></aside>
   <main><header><div><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)}><Menu/></button><div className="mobile-brand">chownatui<span>.</span></div><h1>{title}</h1></div><div className="header-actions"><button className="icon-btn" onClick={refresh} title="รีเฟรช"><RefreshCw size={17}/></button><button className="icon-btn" onClick={()=>go('settings')}><Settings size={18}/></button></div></header>
   {mobileOpen&&<div className="mobile-drawer">{nav.map(([id,t,I])=><button className={page===id?'active':''} key={id} onClick={()=>go(id)}><I size={17}/>{t}</button>)}</div>}
   {page==='home'&&<Home me={me} data={data} date={date} setDate={setDate} go={go}/>}
@@ -228,7 +232,7 @@ function PlanModal({me,data,item,close,refresh}){
  return <Modal title={item?'แก้ไขแผนงาน':'เพิ่มแผนงาน'} close={close}>
   <label>ประเภท<select value={type} onChange={e=>{setType(e.target.value);if(e.target.value==='ซ้อมเชียร์'&&!duties.length)setDuties([{duty_name:'ประสานงาน',user_ids:[]}])}}>{PLAN_TYPES.map(x=><option key={x}>{x}</option>)}</select></label>
   <label>ชื่องาน<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="เช่น เตรียมงานเชียร์"/></label>
-  <label>ฝ่าย<select value={team} onChange={e=>setTeam(e.target.value)}><option value="">ทุกฝ่าย</option>{TEAMS.map(x=><option key={x}>{x}</option>)}</select></label>
+  <label>ฝ่าย<select value={team} onChange={e=>setTeam(e.target.value)}><option value="">ทุกฝ่าย</option>{(data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS).map(x=><option key={x}>{x}</option>)}</select></label>
   <label>วันที่<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>
   <div className="time-choice"><label className="switch-line"><input type="checkbox" checked={hasTime} onChange={e=>setHasTime(e.target.checked)}/>กำหนดเวลา</label>{hasTime&&<div className="form-row"><label>เวลาเริ่ม<input type="time" value={start} onChange={e=>setStart(e.target.value)}/></label><label>จบ<input type="time" value={end} onChange={e=>setEnd(e.target.value)}/></label></div>}</div>
   <h4>หัวข้อ</h4>{topics.map((x,i)=><div className="inline-input" key={i}><input value={x} onChange={e=>setTopics(t=>t.map((v,j)=>j===i?e.target.value:v))} placeholder="หัวข้อที่ต้องทำ"/><button onClick={()=>setTopics(t=>t.filter((_,j)=>j!==i))}><X/></button></div>)}<button className="secondary" onClick={()=>setTopics(t=>[...t,''])}><Plus/>สร้างหัวข้อ</button>
@@ -243,17 +247,18 @@ function Members({me,data}){
 }
 function MemberCard({user,data}){
  const [date,setDate]=useState(todayISO());const av=data.avail.filter(a=>a.user_id===user.id&&a.date===date);const st=data.dayStatus.find(x=>x.user_id===user.id&&x.date===date)?.status;const appts=(data.appointmentMembers||[]).filter(m=>m.user_id===user.id).map(m=>data.appointments.find(a=>a.id===m.appointment_id)).filter(a=>a?.date===date);const plans=data.plans.filter(p=>p.date===date);
- return <div className="member-card"><div className="member-head"><Avatar user={user} className="big"/><div><h3>{user.display_name}</h3><small>{ROLE_LABEL[user.role]} · {user.team||'ยังไม่เลือกฝ่าย'}</small></div></div><p className="bio">{user.bio||'ยังไม่มีคำแนะนำตัว'}</p><div className="member-label">งาน</div>{appts.length?appts.map(a=><div className="member-job" key={a.id}>{a.title}<small>{a.start_time.slice(0,5)}–{a.end_time.slice(0,5)}</small></div>):<span className="muted">ไม่มีงานในวันที่เลือก</span>}<div className="member-label member-date-row"><span>เวลาว่าง</span><DatePicker compact date={date} setDate={setDate}/></div><div className={`status ${st==='available'?'green':st==='unavailable'?'red':'gray'}`}>{st==='available'?'🟢 ว่าง':st==='unavailable'?'🔴 ไม่ว่าง':'⚪ ยังไม่ลงเวลา'}</div>{av.map(a=><div className="line" key={a.id}><span>{a.start_time.slice(0,5)}–{a.end_time.slice(0,5)}</span></div>)}{plans.length>0&&<div className="member-plan-list">{plans.slice(0,3).map(p=><div key={p.id}>{p.title}</div>)}</div>}</div>
+ return <div className="member-card"><div className="member-head"><Avatar user={user} className="big"/><div><h3>{user.display_name}</h3><small>{roleLabel(user,data)} · {user.team||'ยังไม่เลือกฝ่าย'}</small></div></div><p className="bio">{user.bio||'ยังไม่มีคำแนะนำตัว'}</p><div className="member-label">งาน</div>{appts.length?appts.map(a=><div className="member-job" key={a.id}>{a.title}<small>{a.start_time.slice(0,5)}–{a.end_time.slice(0,5)}</small></div>):<span className="muted">ไม่มีงานในวันที่เลือก</span>}<div className="member-label member-date-row"><span>เวลาว่าง</span><DatePicker compact date={date} setDate={setDate}/></div><div className={`status ${st==='available'?'green':st==='unavailable'?'red':'gray'}`}>{st==='available'?'🟢 ว่าง':st==='unavailable'?'🔴 ไม่ว่าง':'⚪ ยังไม่ลงเวลา'}</div>{av.map(a=><div className="line" key={a.id}><span>{a.start_time.slice(0,5)}–{a.end_time.slice(0,5)}</span></div>)}{plans.length>0&&<div className="member-plan-list">{plans.slice(0,3).map(p=><div key={p.id}>{p.title}</div>)}</div>}</div>
 }
 
 function Manage({me,data,refresh,defaultTab}){
- const tabs=[['plans','แผนงานระยะยาว'],['appointments','นัดหมาย'],['people','จัดการสมาชิก'],['roles','ยศและสิทธิ์']];
- const [tab,setTab]=useState(defaultTab);return <section><div className="section-top"><div><h2>⚙️ จัดการตุ้ย</h2><p>{me.role==='head'?'จัดการได้ทุกอย่างรวมถึงยศ': 'เพิ่มงาน แผนงาน และจัดการข้อมูลที่ได้รับอนุญาต'}</p></div></div><div className="seg-tabs manage-tabs">{tabs.map(([id,t])=><button className={tab===id?'active':''} onClick={()=>setTab(id)} key={id}>{t}</button>)}</div>
+ const tabs=[['plans','แผนงานระยะยาว'],['appointments','นัดหมาย'],['people','จัดการสมาชิก'],...(isFullAdmin(me)?[['teams','ฝ่าย'],['roles','ยศและสิทธิ์']]:[])];
+ const [tab,setTab]=useState(defaultTab);return <section><div className="section-top"><div><h2>⚙️ จัดการตุ้ย</h2><p>{isFullAdmin(me)?'จัดการได้ทุกอย่าง รวมถึงฝ่ายและยศ':'เพิ่มงาน แผนงาน และจัดการข้อมูลที่ได้รับอนุญาต'}</p></div></div><div className="seg-tabs manage-tabs">{tabs.map(([id,t])=><button className={tab===id?'active':''} onClick={()=>setTab(id)} key={id}>{t}</button>)}</div>
  {tab==='plans'&&<PlanManager me={me} data={data} refresh={refresh}/>}
  {tab==='appointments'&&<AppointmentsManager me={me} data={data} refresh={refresh}/>}
  {tab==='people'&&<PeopleManager me={me} data={data} refresh={refresh}/>}
- {tab==='roles'&&me.role==='head'&&<RoleManager data={data} refresh={refresh}/>}
- {tab==='roles'&&me.role!=='head'&&<div className="empty">เฉพาะหัวหน้าตุ้ยเท่านั้นที่กำหนดยศได้</div>}
+ {tab==='teams'&&isFullAdmin(me)&&<TeamManager data={data} refresh={refresh}/>}
+ {tab==='roles'&&isFullAdmin(me)&&<RoleManager data={data} refresh={refresh}/>}
+ {tab==='roles'&&!isFullAdmin(me)&&<div className="empty">เฉพาะหัวหน้าตุ้ยและอาจารย์ตุ้ยเท่านั้นที่กำหนดยศได้</div>}
  </section>
 }
 
@@ -325,6 +330,7 @@ function AttendanceStats({data, members}) {
       {open && (
         <Modal title={`สถิติ ${fmt(date)}`} close={() => setOpen(false)}>
           <div className="stat-popup-toolbar">
+            <button className="primary print-btn" onClick={() => window.print()}><ClipboardList size={16}/>พิมพ์ A4</button>
             {labels.map((status) => (
               <button
                 key={status}
@@ -357,6 +363,13 @@ function AttendanceStats({data, members}) {
           </div>
         </Modal>
       )}
+      <div className="print-attendance">
+        <h1>รายงานการเช็คชื่อ</h1>
+        <div className="print-meta">วันที่ {fmt(date)} · {type==='rehearsal'?'ซ้อมน้อง':type==='evening'?'อยู่เย็น':'นอนโรงเรียน'} · {filter==='all'?'ทั้งหมด':filter}</div>
+        <table><thead><tr><th>ลำดับ</th><th>ชื่อ-สกุล</th><th>ชื่อเล่น</th><th>สถานะ</th></tr></thead><tbody>
+          {filtered.map((row,i)=>{const member=members.find(x=>x.id===row.member_id);return <tr key={row.id}><td>{member?.sort_no||i+1}</td><td>{member?.full_name||'ไม่พบข้อมูล'}</td><td>{member?.nickname||''}</td><td>{row.status}</td></tr>})}
+        </tbody></table>
+      </div>
     </div>
   );
 }
@@ -374,10 +387,41 @@ function CleaningManager({me,data,refresh}){
 function PeopleManager({me,data,refresh}){
  const [editing,setEditing]=useState(null),[form,setForm]=useState(null),[file,setFile]=useState(null);function open(u){setEditing(u);setFile(null);setForm({...u})}
  async function save(){let avatar=form.avatar_url||null;if(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase();const path=`member-${form.id}-${Date.now()}.${ext}`;const up=await supabase.storage.from('checkin-avatars').upload(path,file,{upsert:true,contentType:file.type});if(up.error)return alert(up.error.message);avatar=supabase.storage.from('checkin-avatars').getPublicUrl(path).data.publicUrl}const r=await supabase.from('checkin_members').update({full_name:form.full_name,class_name:form.class_name,nickname:form.nickname,team:form.team,linked_user_id:form.linked_user_id||null,avatar_url:avatar}).eq('id',form.id);if(r.error)alert(r.error.message);else{setEditing(null);refresh()}}
- return <div><div className="section-top"><div><h3>ข้อมูลคนเช็คชื่อ</h3><p>หัวหน้าตุ้ย/รองหัวตุ้ยแก้รูป ข้อมูล และเชื่อมบัญชีได้</p></div></div><div className="attendance-table people-admin">{data.checkins.map(m=><div className="att-row" key={m.id}><span>{m.sort_no}</span><Avatar user={m}/><div>{m.full_name}</div><span>{m.class_name}</span><span>{m.nickname}</span><span>{m.team}</span><span>{data.users.find(u=>u.id===m.linked_user_id)?.display_name||'ยังไม่เชื่อม'}</span><button onClick={()=>open(m)}><Edit3/></button></div>)}</div>{editing&&<Modal title="แก้ไขข้อมูลสมาชิกเช็คชื่อ" close={()=>setEditing(null)}><label>ชื่อ-สกุล<input value={form.full_name} onChange={e=>setForm({...form,full_name:e.target.value})}/></label><label>ชั้น<input value={form.class_name} onChange={e=>setForm({...form,class_name:e.target.value})}/></label><label>ชื่อเล่น<input value={form.nickname} onChange={e=>setForm({...form,nickname:e.target.value})}/></label><label>ฝ่าย<select value={form.team} onChange={e=>setForm({...form,team:e.target.value})}>{TEAMS.map(x=><option key={x}>{x}</option>)}</select></label><label>รูปภาพ<input type="file" accept="image/*" onChange={e=>setFile(e.target.files?.[0]||null)}/></label><label>หรือ URL รูปภาพ<input value={form.avatar_url||''} onChange={e=>setForm({...form,avatar_url:e.target.value})} placeholder="https://..."/></label><label>เชื่อมกับบัญชีในเว็บ<select value={form.linked_user_id||''} onChange={e=>setForm({...form,linked_user_id:e.target.value||null})}><option value="">ยังไม่เชื่อม</option>{data.users.map(u=><option key={u.id} value={u.id}>{u.display_name} · {u.email}</option>)}</select></label><button className="primary wide" onClick={save}><Save/>บันทึก</button></Modal>}</div>
+ return <div><div className="section-top"><div><h3>ข้อมูลคนเช็คชื่อ</h3><p>หัวหน้าตุ้ย/รองหัวตุ้ยแก้รูป ข้อมูล และเชื่อมบัญชีได้</p></div></div><div className="attendance-table people-admin">{data.checkins.map(m=><div className="att-row" key={m.id}><span>{m.sort_no}</span><Avatar user={m}/><div>{m.full_name}</div><span>{m.class_name}</span><span>{m.nickname}</span><span>{m.team}</span><span>{data.users.find(u=>u.id===m.linked_user_id)?.display_name||'ยังไม่เชื่อม'}</span><button onClick={()=>open(m)}><Edit3/></button></div>)}</div>{editing&&<Modal title="แก้ไขข้อมูลสมาชิกเช็คชื่อ" close={()=>setEditing(null)}><label>ชื่อ-สกุล<input value={form.full_name} onChange={e=>setForm({...form,full_name:e.target.value})}/></label><label>ชั้น<input value={form.class_name} onChange={e=>setForm({...form,class_name:e.target.value})}/></label><label>ชื่อเล่น<input value={form.nickname} onChange={e=>setForm({...form,nickname:e.target.value})}/></label><label>ฝ่าย<select value={form.team} onChange={e=>setForm({...form,team:e.target.value})}>{(data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS).map(x=><option key={x}>{x}</option>)}</select></label><label>รูปภาพ<input type="file" accept="image/*" onChange={e=>setFile(e.target.files?.[0]||null)}/></label><label>หรือ URL รูปภาพ<input value={form.avatar_url||''} onChange={e=>setForm({...form,avatar_url:e.target.value})} placeholder="https://..."/></label><label>เชื่อมกับบัญชีในเว็บ<select value={form.linked_user_id||''} onChange={e=>setForm({...form,linked_user_id:e.target.value||null})}><option value="">ยังไม่เชื่อม</option>{data.users.map(u=><option key={u.id} value={u.id}>{u.display_name} · {u.email}</option>)}</select></label><button className="primary wide" onClick={save}><Save/>บันทึก</button></Modal>}</div>
 }
 
-function RoleManager({data,refresh}){const [busy,setBusy]=useState('');async function setRole(u,role){setBusy(u.id);const r=await supabase.from('profiles').update({role}).eq('id',u.id);if(r.error)alert(r.error.message);else refresh();setBusy('')}return <div className="role-page"><div className="role-intro"><div className="role-intro-icon"><Shield/></div><div><h3>ยศและสิทธิ์</h3><p>กำหนดยศให้สมาชิก แต่ละยศมีสิทธิ์การใช้งานต่างกัน</p></div></div><div className="role-cards"><div><b>หัวหน้าตุ้ย</b><span>จัดการทุกอย่าง และกำหนดยศได้</span></div><div><b>รองหัวตุ้ย</b><span>เพิ่มงาน แผนงาน เช็คชื่อ และเวร</span></div><div><b>สมาตุ้ย</b><span>ดูข้อมูลและลงเวลาของตัวเอง</span></div></div><div className="role-list">{data.users.map(u=><div className="role-user" key={u.id}><div className="role-user-info"><Avatar user={u}/><div><b>{u.display_name}</b><small>{u.team||'ยังไม่เลือกฝ่าย'} · {u.email}</small></div></div><select className="role-select" disabled={busy===u.id} value={u.role} onChange={e=>setRole(u,e.target.value)}><option value="member">สมาตุ้ย</option><option value="deputy">รองหัวตุ้ย</option><option value="head">หัวหน้าตุ้ย</option></select></div>)}</div></div>}
+function TeamManager({data,refresh}){
+ const [name,setName]=useState(''); const [editing,setEditing]=useState(null); const [busy,setBusy]=useState(false);
+ const teams=data.teamOptions?.length?data.teamOptions:DEFAULT_TEAMS.map((name,i)=>({id:`default-${i}`,name,sort_order:i}));
+ async function save(){const n=name.trim();if(!n)return;if(teams.some(t=>t.name.toLowerCase()===n.toLowerCase()&&t.id!==editing?.id))return alert('มีฝ่ายนี้อยู่แล้ว');setBusy(true);try{
+  if(editing){const old=editing.name;const r=await supabase.from('team_options').update({name:n}).eq('id',editing.id);if(r.error)throw r.error;
+   await supabase.from('profiles').update({team:n}).eq('team',old); await supabase.from('checkin_members').update({team:n}).eq('team',old);
+  }else{const r=await supabase.from('team_options').insert({name:n,sort_order:teams.length}).select().single();if(r.error)throw r.error}
+  setName('');setEditing(null);await refresh();
+ }catch(e){alert(e.message||'บันทึกฝ่ายไม่สำเร็จ')}finally{setBusy(false)}}
+ async function remove(t){if(t.id?.startsWith('default-'))return alert('ฝ่ายเริ่มต้นต้องสร้าง/จัดการผ่านฐานข้อมูลก่อน');const p=await supabase.from('profiles').select('id',{count:'exact',head:true}).eq('team',t.name);const c=await supabase.from('checkin_members').select('id',{count:'exact',head:true}).eq('team',t.name);if((p.count||0)+(c.count||0)>0)return alert('ยังลบฝ่ายนี้ไม่ได้ เพราะมีสมาชิกหรือรายชื่อเช็คชื่อใช้อยู่');if(!confirm(`ลบฝ่าย “${t.name}” ?`))return;const r=await supabase.from('team_options').delete().eq('id',t.id);if(r.error)alert(r.error.message);else refresh()}
+ return <div className="manage-box"><div className="section-top"><div><h3>ฝ่าย</h3><p>หัวหน้าตุ้ยและอาจารย์ตุ้ยสามารถเพิ่ม แก้ชื่อ และลบฝ่ายได้</p></div></div>
+  <div className="inline-form"><input value={name} onChange={e=>setName(e.target.value)} placeholder={editing?'แก้ชื่อฝ่าย':'เพิ่มชื่อฝ่าย'}/><button className="primary" disabled={busy} onClick={save}>{editing?'บันทึกการแก้ไข':'เพิ่มฝ่าย'}</button>{editing&&<button className="secondary" onClick={()=>{setEditing(null);setName('')}}>ยกเลิก</button>}</div>
+  <div className="option-list">{teams.map(t=><div className="option-row" key={t.id}><b>{t.name}</b><div className="actions"><button onClick={()=>{setEditing(t);setName(t.name)}}><Edit3 size={15}/></button>{!t.id.startsWith('default-')&&<button onClick={()=>remove(t)}><Trash2 size={15}/></button>}</div></div>)}</div>
+ </div>
+}
+
+function RoleManager({data,refresh}){
+ const [busy,setBusy]=useState(''); const [name,setName]=useState(''); const [editing,setEditing]=useState(null);
+ const builtins=[['member','สมาตุ้ย','ดูข้อมูลและลงเวลาของตัวเอง'],['deputy','รองหัวตุ้ย','เพิ่มงาน แผนงาน เช็คชื่อ และเวร'],['head','หัวหน้าตุ้ย','จัดการทุกอย่าง รวมถึงฝ่ายและยศ'],['teacher','อาจารย์ตุ้ย','ทำและดูได้ทุกอย่างเหมือนหัวหน้าตุ้ย']];
+ async function setRole(u,value){setBusy(u.id);try{let payload={custom_role_id:null,role:value};if(value.startsWith('custom:')){payload={role:'member',custom_role_id:value.slice(7)}}const r=await supabase.from('profiles').update(payload).eq('id',u.id);if(r.error)throw r.error;await refresh()}catch(e){alert(e.message||'เปลี่ยนยศไม่สำเร็จ')}finally{setBusy('')}}
+ async function saveCustom(){const n=name.trim();if(!n)return;if(data.customRoles?.some(r=>r.name.toLowerCase()===n.toLowerCase()&&r.id!==editing?.id))return alert('มียศนี้อยู่แล้ว');const r=editing?await supabase.from('custom_roles').update({name:n}).eq('id',editing.id):await supabase.from('custom_roles').insert({name:n});if(r.error)alert(r.error.message);else{setName('');setEditing(null);refresh()}}
+ async function removeCustom(r){if(!confirm(`ลบยศ “${r.name}” ? สมาชิกที่ใช้ยศนี้จะกลับเป็นสมาตุ้ย`))return;const q=await supabase.from('custom_roles').delete().eq('id',r.id);if(q.error)alert(q.error.message);else refresh()}
+ return <div className="role-page">
+  <div className="role-intro"><div className="role-intro-icon"><Shield/></div><div><h3>ยศและสิทธิ์</h3><p>หัวหน้าตุ้ยและอาจารย์ตุ้ยจัดการยศได้ ยศกำหนดเองใช้เป็นชื่อยศ ส่วนสิทธิ์พิเศษยังคงตามยศระบบ</p></div></div>
+  <div className="role-cards">{builtins.map(([id,label,desc])=><div key={id}><b>{label}</b><span>{desc}</span></div>)}</div>
+  <div className="manage-box"><h3>เพิ่ม / แก้ไขยศกำหนดเอง</h3><div className="inline-form"><input value={name} onChange={e=>setName(e.target.value)} placeholder="เช่น สต๊าฟ, ที่ปรึกษา"/><button className="primary" onClick={saveCustom}>{editing?'บันทึกการแก้ไข':'เพิ่มยศ'}</button>{editing&&<button className="secondary" onClick={()=>{setEditing(null);setName('')}}>ยกเลิก</button>}</div>
+   <div className="option-list">{(data.customRoles||[]).map(r=><div className="option-row" key={r.id}><b>{r.name}</b><div className="actions"><button onClick={()=>{setEditing(r);setName(r.name)}}><Edit3 size={15}/></button><button onClick={()=>removeCustom(r)}><Trash2 size={15}/></button></div></div>)}{!data.customRoles?.length&&<div className="muted">ยังไม่มียศกำหนดเอง</div>}</div>
+  </div>
+  <div className="role-list">{data.users.map(u=>{const selected=u.custom_role_id?`custom:${u.custom_role_id}`:`builtin:${u.role}`;return <div className="role-user" key={u.id}><div className="role-user-info"><Avatar user={u}/><div><b>{u.display_name}</b><small>{u.team||'ยังไม่เลือกฝ่าย'} · {u.email}</small></div></div><select className="role-select" disabled={busy===u.id} value={selected} onChange={e=>setRole(u,e.target.value.replace(/^builtin:/,''))}><option value="builtin:member">สมาตุ้ย</option><option value="builtin:deputy">รองหัวตุ้ย</option><option value="builtin:head">หัวหน้าตุ้ย</option><option value="builtin:teacher">อาจารย์ตุ้ย</option>{(data.customRoles||[]).map(r=><option key={r.id} value={`custom:${r.id}`}>{r.name}</option>)}</select></div>})}</div>
+ </div>
+}
+
 function AvatarCropModal({src,scale,x,y,setScale,setX,setY,onCancel,onConfirm}){
  return <div className="modal-bg crop-modal-bg"><div className="modal crop-modal"><div className="modal-head"><h2>ปรับรูปโปรไฟล์</h2><button onClick={onCancel}><X/></button></div><p className="muted crop-help">ขยับรูปให้พอดีกรอบ แล้วกดใช้รูปนี้</p><div className="crop-stage"><img src={src} alt="ตัวอย่างรูป" style={{transform:`translate(${x}%, ${y}%) scale(${scale})`}}/></div><div className="crop-controls"><div className="crop-direction"><button className="secondary" type="button" onClick={()=>setY(v=>Math.max(-50,v-5))}>↑<span>ขึ้น</span></button><div><button className="secondary" type="button" onClick={()=>setX(v=>Math.max(-50,v-5))}>←<span>ซ้าย</span></button><button className="secondary" type="button" onClick={()=>{setX(0);setY(0)}}><Move/><span>กลาง</span></button><button className="secondary" type="button" onClick={()=>setX(v=>Math.min(50,v+5))}>→<span>ขวา</span></button></div><button className="secondary" type="button" onClick={()=>setY(v=>Math.min(50,v+5))}>↓<span>ลง</span></button></div><div className="crop-zoom"><button className="secondary" type="button" onClick={()=>setScale(v=>Math.max(1,Number((v-.1).toFixed(2))))}><ZoomOut/><span>ซูมออก</span></button><b>{Math.round(scale*100)}%</b><button className="secondary" type="button" onClick={()=>setScale(v=>Math.min(2.5,Number((v+.1).toFixed(2))))}><ZoomIn/><span>ซูมเข้า</span></button></div></div><div className="crop-actions"><button className="secondary" onClick={onCancel}>ยกเลิก</button><button className="primary" onClick={onConfirm}><Check/>ใช้รูปนี้</button></div></div></div>
 }
@@ -394,7 +438,7 @@ function SettingsPage({me,data,refresh,setProfile}){
  function cancelCrop(){setCropOpen(false);setFile(null);setPreview(me.avatar_url||'');setCropScale(me.avatar_scale||1);setCropX(me.avatar_x||0);setCropY(me.avatar_y||0)}
  function confirmCrop(){setCropOpen(false)}
  async function save(){setErr('');setMsg('');try{let avatar=me.avatar_url;if(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase();const path=`${me.id}/avatar-${Date.now()}.${ext}`;const u=await supabase.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});if(u.error)throw u.error;avatar=supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl}const r=await supabase.from('profiles').update({display_name:name.trim(),bio:bio.trim()||null,team:team||null,birthday:birthday||null,avatar_url:avatar||null,avatar_scale:cropScale,avatar_x:cropX,avatar_y:cropY}).eq('id',me.id).select().single();if(r.error)throw r.error;setProfile(r.data);await refresh();setFile(null);setMsg('บันทึกเรียบร้อย')}catch(e){setErr(e.message)}}
- return <section><div className="section-top"><div><h2>⚙️ ตั้งค่า</h2><p>แก้ข้อมูลส่วนตัว ฝ่าย และแนะนำตัว</p></div></div><div className="card settings-form-card"><div className="settings-avatar-row"><div className="settings-avatar-preview"><Avatar user={{...me,avatar_url:preview,avatar_scale:file?cropScale:me.avatar_scale,avatar_x:file?cropX:me.avatar_x,avatar_y:file?cropY:me.avatar_y}} className="profile-avatar"/><span>{file?'พรีวิวรูปใหม่':'รูปโปรไฟล์ปัจจุบัน'}</span></div><div className="settings-avatar-actions"><label className="upload-btn">เปลี่ยนรูป<input type="file" accept="image/*" onChange={e=>{pickFile(e.target.files?.[0]);e.target.value=''}}/></label><small className="muted">เลือกรูปแล้วพรีวิวจะขึ้นทันที และจะเปิดหน้าปรับตำแหน่ง/ซูม</small></div></div><div className="settings-fields"><label>ชื่อที่แสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="กรอกชื่อที่ต้องการให้แสดง"/></label><label>ฝ่าย<select value={team} onChange={e=>setTeam(e.target.value)}><option value="">ยังไม่เลือก</option>{TEAMS.map(x=><option key={x}>{x}</option>)}</select></label><label>แนะนำตัว<textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="เขียนแนะนำตัวสั้นๆ"/></label><label>วันเกิด<input type="date" value={birthday} onChange={e=>setBirthday(e.target.value)}/></label><div className="settings-role"><span>ยศ</span><b>{ROLE_LABEL[me.role]}</b></div>{err&&<div className="error">{err}</div>}{msg&&<div className="notice">{msg}</div>}<button className="primary settings-save" onClick={save}><Save/>บันทึกการตั้งค่า</button></div></div>{cropOpen&&<AvatarCropModal src={preview} scale={cropScale} x={cropX} y={cropY} setScale={setCropScale} setX={setCropX} setY={setCropY} onCancel={cancelCrop} onConfirm={confirmCrop}/>}</section>}
+ return <section><div className="section-top"><div><h2>⚙️ ตั้งค่า</h2><p>แก้ข้อมูลส่วนตัว ฝ่าย และแนะนำตัว</p></div></div><div className="card settings-form-card"><div className="settings-avatar-row"><div className="settings-avatar-preview"><Avatar user={{...me,avatar_url:preview,avatar_scale:file?cropScale:me.avatar_scale,avatar_x:file?cropX:me.avatar_x,avatar_y:file?cropY:me.avatar_y}} className="profile-avatar"/><span>{file?'พรีวิวรูปใหม่':'รูปโปรไฟล์ปัจจุบัน'}</span></div><div className="settings-avatar-actions"><label className="upload-btn">เปลี่ยนรูป<input type="file" accept="image/*" onChange={e=>{pickFile(e.target.files?.[0]);e.target.value=''}}/></label><small className="muted">เลือกรูปแล้วพรีวิวจะขึ้นทันที และจะเปิดหน้าปรับตำแหน่ง/ซูม</small></div></div><div className="settings-fields"><label>ชื่อที่แสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="กรอกชื่อที่ต้องการให้แสดง"/></label><label>ฝ่าย<select value={team} onChange={e=>setTeam(e.target.value)}><option value="">ยังไม่เลือก</option>{(data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS).map(x=><option key={x}>{x}</option>)}</select></label><label>แนะนำตัว<textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="เขียนแนะนำตัวสั้นๆ"/></label><label>วันเกิด<input type="date" value={birthday} onChange={e=>setBirthday(e.target.value)}/></label><div className="settings-role"><span>ยศ</span><b>{roleLabel(me,data)}</b></div>{err&&<div className="error">{err}</div>}{msg&&<div className="notice">{msg}</div>}<button className="primary settings-save" onClick={save}><Save/>บันทึกการตั้งค่า</button></div></div>{cropOpen&&<AvatarCropModal src={preview} scale={cropScale} x={cropX} y={cropY} setScale={setCropScale} setX={setCropX} setY={setCropY} onCancel={cancelCrop} onConfirm={confirmCrop}/>}</section>}
 
 function Modal({title,close,children}){return <div className="modal-bg" onMouseDown={e=>e.target===e.currentTarget&&close()}><div className="modal"><div className="modal-head"><h2>{title}</h2><button onClick={close}><X/></button></div>{children}</div></div>}
 
