@@ -1,26 +1,73 @@
-# chownatui
+# chownatui v4
 
-Mobile-first team availability and work scheduling app built with React + Vite + Supabase.
+React + Vite + Supabase team scheduling / cheer-team management app.
 
-## Features
-- Supabase email/password authentication
-- Member/Admin roles with RLS
-- Explicit day status: ยังไม่ลงเวลา / ว่าง / ไม่ว่าง
-- Status confirmation before saving
-- Multiple availability intervals with job-overlap checks
-- Team overview
-- Monthly shared calendar for Sep-Oct 2026 with daily jobs
-- Admin job management and member assignment
-- Profile settings: display name, avatar, bio, password
-- Vercel-ready
+## สิ่งที่เพิ่มใน v4
 
-## Supabase setup
-1. Run `supabase/schema.sql` if starting from scratch.
-2. Run `supabase/migration-production.sql`.
-3. Run `supabase/profile-settings.sql` once to enable avatars/bio.
+- เมนูซ้ายใหม่: หน้าหลัก / ปฏิทิน / ลงเวลา / นัดหมาย / สมาตุ้ยทั้งหมด / จัดการตุ้ย / ตั้งค่า
+- ฝ่าย: โค้ด / เทคนิค / อุปกรณ์ / โลจิสติกส์ / ลีดเดอร์
+- ยศ: หัวหน้าตุ้ย / รองหัวตุ้ย / สมาตุ้ย
+- รองหัวตุ้ยจัดการแผนงาน นัดหมาย เช็คชื่อ และเวรได้
+- หัวหน้าตุ้ยจัดการยศและสมาชิกได้
+- สมาตุ้ยดูข้อมูลทีมและลงเวลาว่างได้
+- ลงเวลาว่างเป็นช่วงเวลา และตรวจชนกับแผนงานที่มอบหมาย
+- นัดหมาย: ซ้อมน้อง / อยู่เย็น / นอนโรงเรียน / ถ่ายคลิป / อื่นๆ
+- แผนงานระยะยาว: งานฝ่าย / งานหลัก / ซ้อมเชียร์
+- แผนงานสร้างหัวข้อย่อยได้
+- ซ้อมเชียร์กำหนดหน้าที่หลายคนต่อ 1 หน้าที่ได้
+- ซ้อมเชียร์กำหนดช่วงเวลาว่าทำอะไรและหมายเหตุได้
+- ปฏิทินแสดงงาน/นัดหมาย/แผนงานในวันที่เกี่ยวข้อง
+- สมาตุ้ยทั้งหมดแสดงรูป ชื่อ แนะนำตัว ฝ่าย ยศ และเวลาว่าง
+- เช็คชื่อ 3 แบบ: ซ้อมน้อง / อยู่เย็น / นอนโรงเรียน
+- เช็คชื่อมีหมายเหตุและสถิติย้อนหลัง
+- รายชื่อเช็คชื่อ 42 คนจากข้อมูลที่ให้มา
+- แก้ข้อมูลคนเช็คชื่อ + รูป + เชื่อมกับบัญชีเว็บ
+- เวรทำความสะอาด จันทร์–ศุกร์, สูงสุด 8 คน/วัน, หลายห้อง, สุ่มได้
+- เพิ่มปุ่มส่งอีเมลยืนยันซ้ำหน้า signup
+- รองรับ avatar storage
 
-## Vercel environment variables
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
+## วิธีติดตั้ง
 
-Never put a Supabase secret/service-role key in the frontend.
+1. ใช้โปรเจกต์เดิมบน Vercel ได้เลย
+2. ใน Supabase เปิด SQL Editor แล้วรัน:
+   - `supabase/migration-v4.sql`
+3. ตั้งบัญชีหัวหน้าตุ้ยคนแรก หลังสร้างบัญชีแล้ว:
+   ```sql
+   update public.profiles set role='head' where email='YOUR_EMAIL';
+   ```
+4. Vercel Environment Variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+5. Deploy ใหม่
+
+## สำคัญเรื่องอีเมลยืนยัน
+
+หน้า signup มีปุ่ม “ส่งอีเมลยืนยันอีกครั้ง” แล้ว แต่การส่งเมลจริงขึ้นกับ Supabase Auth / SMTP และ URL redirect ที่ตั้งไว้ใน Supabase
+
+ใน Supabase:
+- Authentication > URL Configuration
+- เพิ่ม Production URL ของเว็บใน Site URL / Redirect URLs
+- ตรวจ Email Provider และ SMTP ถ้าใช้ระบบส่งเมลแบบกำหนดเอง
+
+## สิทธิ์
+
+- หัวหน้าตุ้ย: จัดการสมาชิกและกำหนดยศ
+- รองหัวตุ้ย: เพิ่ม/แก้แผนงาน นัดหมาย เช็คชื่อ และเวร
+- สมาตุ้ย: ดูข้อมูลและลงเวลาว่าง
+
+สิทธิ์สำคัญถูกบังคับด้วย Supabase RLS ไม่ได้พึ่งแค่การซ่อนปุ่มใน React
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+อย่าใส่ Supabase service-role key ใน frontend
