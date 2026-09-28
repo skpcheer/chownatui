@@ -61,12 +61,31 @@ function App(){
 }
 
 function Auth({mode,setMode,error,setError}){
- const [email,setEmail]=useState(''),[pw,setPw]=useState(''),[name,setName]=useState(''),[busy,setBusy]=useState(false),[msg,setMsg]=useState('');
+ const [email,setEmail]=useState(''),[pw,setPw]=useState(''),[name,setName]=useState(''),[teamCode,setTeamCode]=useState(''),[busy,setBusy]=useState(false),[msg,setMsg]=useState('');
+ const TEAM_CODE=(import.meta.env.VITE_CHOWNATUI_TEAM_CODE||'CHOWNATUI888').trim();
  async function submit(e){e.preventDefault();setError('');setMsg('');setBusy(true);try{
-  if(mode==='login'){const r=await supabase.auth.signInWithPassword({email,password:pw});if(r.error)throw r.error}
-  else {if(!name.trim())throw new Error('กรุณาใส่ชื่อที่จะแสดง');const r=await supabase.auth.signUp({email,password:pw,options:{data:{display_name:name.trim()}}});if(r.error)throw r.error;setMsg(r.data.session?'สมัครสำเร็จ กำลังเข้าสู่ระบบ...':'สมัครสำเร็จ กรุณาตรวจอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ')}
+  const normalizedEmail=email.trim().toLowerCase();
+  if(!normalizedEmail)throw new Error('กรุณากรอกอีเมล');
+  if(pw.length<6)throw new Error('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+  if(mode==='login'){
+   const r=await supabase.auth.signInWithPassword({email:normalizedEmail,password:pw});
+   if(r.error){
+    // Check whether this email exists so the UI can distinguish a missing account from a wrong password.
+    const exists=await supabase.rpc('email_exists',{check_email:normalizedEmail});
+    if(!exists.error && exists.data===false) throw new Error('ไม่พบข้อมูลสมาชิก กรุณาสมัครสมาชิกก่อน');
+    throw new Error('รหัสผ่านไม่ถูกต้อง');
+   }
+  } else {
+   if(!name.trim())throw new Error('กรุณาใส่ชื่อที่จะแสดง');
+   const r=await supabase.auth.signUp({email:normalizedEmail,password:pw,options:{data:{display_name:name.trim()}}});
+   if(r.error){
+    if(/already|registered|exists|duplicate/i.test(r.error.message||'')) throw new Error('อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
+    throw r.error;
+   }
+   if(r.data.session) setMsg('สมัครสำเร็จ กำลังเข้าสู่ระบบ...');
+   else setMsg('สมัครสำเร็จ กรุณาติดต่อผู้ดูแลหากยังไม่สามารถเข้าสู่ระบบได้');
+  }
  }catch(e){setError(e.message||'เกิดข้อผิดพลาด')}finally{setBusy(false)}}
- async function resend(){setError('');setMsg('');if(!email)return setError('กรอกอีเมลก่อน');const r=await supabase.auth.resend({type:'signup',email});if(r.error)setError(r.error.message);else setMsg('ส่งอีเมลยืนยันอีกครั้งแล้ว กรุณาเช็ก Spam/Junk ด้วย')}
  return <div className="auth"><div className="auth-card"><div className="brand">chownatui<span>.</span></div><p className="tag">จัดการเวลาของทีมให้ง่ายกว่าเดิม</p>
   <div className="auth-tabs"><button className={mode==='login'?'active':''} onClick={()=>{setMode('login');setError('')}}>เข้าสู่ระบบ</button><button className={mode==='signup'?'active':''} onClick={()=>{setMode('signup');setError('')}}>สมัครสมาชิก</button></div>
   <form onSubmit={submit}>{mode==='signup'&&<label>ชื่อที่จะแสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="เช่น กอตอ" required/></label>}
