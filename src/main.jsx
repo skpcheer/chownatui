@@ -140,7 +140,7 @@ function Dashboard({me,data,refresh,setProfile,logout}){
  ];
  const title=nav.find(x=>x[0]===page)?.[1]||'หน้าหลัก';
  const go=p=>{setPage(p);setMobileOpen(false)};
- return <div className="app"><aside><div className="brand side">CHOWNATUI <small className="app-version">v.2.9</small></div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
+ return <div className="app"><aside><div className="brand side">CHOWNATUI</div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
   <div className="side-bottom"><div className="me"><Avatar user={me}/><div><b>{me.display_name}</b><small>{me.department_position||roleLabel(me,data)}{me.team?` · ${me.team}`:''}</small></div></div><button className="nav" onClick={logout}><LogOut size={18}/>ออกจากระบบ</button></div></aside>
   <main><header><div><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)}><Menu/></button><div className="mobile-brand">chownatui<span>.</span></div><h1>{title}</h1></div><div className="header-actions"><NotificationBell me={me} data={data} refresh={refresh}/><button className="icon-btn" onClick={()=>go('settings')}><Settings size={18}/></button></div></header>
   {mobileOpen&&<div className="mobile-drawer">{nav.map(([id,t,I])=><button className={page===id?'active':''} key={id} onClick={()=>go(id)}><I size={17}/>{t}</button>)}</div>}
@@ -311,7 +311,7 @@ function AnnouncementManager({me,data,refresh}){
 function Manage({me,data,refresh,defaultTab}){
  const tabs=[['announcements','ประกาศ'],['plans','แผนงานระยะยาว'],['appointments','นัดหมาย'],['people','จัดการสมาชิก'],...(isFullAdmin(me)?[['teams','ฝ่าย'],['roles','ยศและสิทธิ์']]:[])];
  const [tab,setTab]=useState(defaultTab);return <section><div className="section-top"><div><h2>⚙️ จัดการตุ้ย</h2><p>{isFullAdmin(me)?'จัดการได้ทุกอย่าง รวมถึงฝ่ายและยศ':'เพิ่มงาน แผนงาน และจัดการข้อมูลที่ได้รับอนุญาต'}</p></div></div><div className="seg-tabs manage-tabs">{tabs.map(([id,t])=><button className={tab===id?'active':''} onClick={()=>setTab(id)} key={id}>{t}</button>)}</div>
- {tab==='announcements'&&canAnnounce(me)&&<AnnouncementManager me={me} data={data} refresh={refresh}/>
+ {tab==='announcements'&&canAnnounce(me)&&<AnnouncementManager me={me} data={data} refresh={refresh}/>}
  {tab==='plans'&&<PlanManager me={me} data={data} refresh={refresh}/>}
  {tab==='appointments'&&<AppointmentsManager me={me} data={data} refresh={refresh}/>}
  {tab==='people'&&<PeopleManager me={me} data={data} refresh={refresh}/>}
