@@ -110,9 +110,12 @@ function DatePicker({date,setDate,compact=false}){
  const shift=(n)=>{const d=new Date(date+'T00:00:00');d.setDate(d.getDate()+n);setDate(d.toISOString().slice(0,10))};
  return <div className={`datebar ${compact?'compact':''}`}>
   <button className="date-arrow" onClick={()=>shift(-1)} aria-label="วันก่อนหน้า"><ChevronLeft size={16}/></button>
-  <label className="date-display">
-   <small>วันที่</small><b>{fmt(date)}</b><input aria-label="เลือกวันที่" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
-  </label>
+  <div className="date-display">
+   <div className="date-display-text"><small>วันที่</small><b>{fmt(date)}</b></div>
+   <label className="date-calendar-button" title="เลือกวันที่" aria-label="เลือกวันที่">
+    <CalendarDays size={16}/><input aria-label="เลือกวันที่" type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+   </label>
+  </div>
   <button className="date-arrow" onClick={()=>shift(1)} aria-label="วันถัดไป"><ChevronRight size={16}/></button>
  </div>
 }
@@ -251,7 +254,9 @@ function CleaningManager({me,data,refresh}){
  useEffect(()=>{setPeople(existing.flatMap(x=>x.user_ids||[]));setRooms([...new Set(existing.flatMap(x=>x.rooms||[]))])},[date,data.cleaning]);
  async function save(){await supabase.from('cleaning_duties').delete().eq('date',date);const r=await supabase.from('cleaning_duties').insert({date,user_ids:people.slice(0,8),rooms});if(r.error)alert(r.error.message);else refresh()}
  function randomize(){const shuffled=[...data.users].sort(()=>Math.random()-.5).slice(0,8);setPeople(shuffled.map(x=>x.id))}
- return <section><div className="section-top"><div><h2>🧹 เวรทำความสะอาด</h2><p>กำหนดคนและห้องสำหรับวันที่เลือก วันละไม่เกิน 8 คน</p></div><button className="primary" onClick={save}><Save/>บันทึกเวร</button></div><DatePicker date={date} setDate={setDate}/><div className="form-grid"><label>คนทำเวร<select multiple value={people} onChange={e=>setPeople([...e.target.selectedOptions].map(x=>x.value))}>{data.users.map(u=><option key={u.id} value={u.id}>{u.display_name}</option>)}</select></label><label>ห้อง<select multiple value={rooms} onChange={e=>setRooms([...e.target.selectedOptions].map(x=>x.value))}>{CLEAN_ROOMS.map(x=><option key={x}>{x}</option>)}</select></label></div><div className="button-row"><button className="secondary" onClick={randomize}><Shuffle/>สุ่ม 8 คน</button></div><div className="card"><div className="card-title"><span>เวรวันที่ {fmt(date)}</span><span className="muted">{people.length}/8 คน</span></div><div className="people">{people.map(id=><span key={id}>{data.users.find(u=>u.id===id)?.display_name}</span>)}</div><p className="muted">{rooms.length?'ห้อง: '+rooms.join(' · '):'ยังไม่ได้เลือกห้อง'}</p></div></section>
+ const togglePerson=id=>setPeople(cur=>cur.includes(id)?cur.filter(x=>x!==id):(cur.length>=8?cur:[...cur,id]));
+ const toggleRoom=room=>setRooms(cur=>cur.includes(room)?cur.filter(x=>x!==room):[...cur,room]);
+ return <section><div className="section-top"><div><h2>🧹 เวรทำความสะอาด</h2><p>เลือกคนได้หลายคน สูงสุด 8 คน และเลือกห้องได้หลายห้อง</p></div><button className="primary" onClick={save}><Save/>บันทึกเวร</button></div><DatePicker date={date} setDate={setDate}/><div className="cleaning-picker-grid"><div className="cleaning-picker"><div className="picker-heading"><b>คนทำเวร</b><span>{people.length}/8 คน</span></div><div className="choice-buttons">{data.users.map(u=><button type="button" key={u.id} className={people.includes(u.id)?'choice-chip active':'choice-chip'} onClick={()=>togglePerson(u.id)}>{u.display_name}</button>)}</div></div><div className="cleaning-picker"><div className="picker-heading"><b>ห้อง</b><span>{rooms.length} ห้อง</span></div><div className="choice-buttons">{CLEAN_ROOMS.map(room=><button type="button" key={room} className={rooms.includes(room)?'choice-chip active':'choice-chip'} onClick={()=>toggleRoom(room)}>{room}</button>)}</div></div></div><div className="button-row"><button className="secondary" onClick={randomize}><Shuffle/>สุ่ม 8 คน</button></div><div className="card cleaning-preview"><div className="card-title"><span>เวรวันที่ {fmt(date)}</span><span className="muted">{people.length}/8 คน · {rooms.length} ห้อง</span></div><div className="people">{people.map(id=><span key={id}>{data.users.find(u=>u.id===id)?.display_name}</span>)}</div><p className="muted">{rooms.length?'ห้อง: '+rooms.join(' · '):'ยังไม่ได้เลือกห้อง'}</p></div></section>
 }
 
 function PeopleManager({me,data,refresh}){

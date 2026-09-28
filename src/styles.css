@@ -73,3 +73,38 @@ option{background:#0b1321;color:#eef5ff}
 .member-card{min-width:0}.member-label{font-size:11px;color:#8493aa;margin:14px 0 7px}.member-date-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.member-date-row .datebar{flex:none}.member-job{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#0b1321;margin-bottom:6px;font-size:12px}.member-job small{color:var(--muted)}.member-plan-list{margin-top:8px;display:flex;flex-direction:column;gap:5px;color:#bcd8ff;font-size:11px}.member-plan-list div{padding:6px 8px;border-radius:8px;background:#101d31}.people{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.people span{font-size:11px;padding:5px 8px;background:#172338;border-radius:8px;color:#cbd8eb}.member-checks{max-height:190px;overflow:auto;padding:9px;border:1px solid var(--line);border-radius:11px;background:#0b1321}.check{display:flex;align-items:center;gap:8px;padding:7px 5px;margin:0;font-size:12px;color:#cbd8eb}.check input{margin:0}.duty-editor{align-items:center}.slot-editor{align-items:center}
 .modal-bg{padding:22px;overflow-y:auto}.modal{width:min(650px,100%);max-height:calc(100dvh - 44px);overflow-y:auto;background:#0d1422;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 25px 80px #0009}.modal-head{position:sticky;top:-20px;z-index:2;background:#0d1422;padding:2px 0 14px;margin-bottom:8px}.modal-head h2{font-size:20px;margin:0}.modal-head button{width:36px;height:36px;border-radius:9px;background:#172338;display:grid;place-items:center}.modal>label:last-of-type{margin-bottom:16px}
 @media(max-width:800px){main{padding:22px 16px 45px}.datebar{width:100%;justify-content:center}.date-display{min-width:0;flex:1}.section-top{align-items:flex-start;flex-direction:column}.section-top .primary{width:100%;justify-content:center}.form-row{grid-template-columns:1fr}.life-summary{align-items:flex-start;gap:10px}.member-date-row{align-items:flex-start;flex-direction:column}.member-date-row .datebar{width:100%}.checkin-toolbar{align-items:stretch}.checkin-toolbar .datebar{width:100%}.compact-field{width:100%}.modal-bg{padding:10px}.modal{max-height:calc(100dvh - 20px);padding:16px}.modal-head{top:-16px}.duty-editor,.slot-editor{grid-template-columns:1fr}.duty-editor select[multiple]{min-height:110px}.slot-editor input:first-child,.slot-editor input:nth-child(4){grid-column:auto}}
+
+/* v6 spacing + date picker + multi-choice controls */
+section{gap:0}
+.card{margin-bottom:18px}
+.section-top{margin-bottom:18px;gap:18px}
+.section-top>div:first-child{min-width:0}
+.section-top h2,.section-top h3{margin-bottom:6px}
+.section-top p{margin:0;line-height:1.6}
+form,.modal form,.form-grid,.form-row{row-gap:18px}
+label{margin-bottom:18px;line-height:1.5}
+label>input,label>select,label>textarea{margin-top:8px}
+.button-row{gap:10px;margin:16px 0 20px}
+.primary,.secondary,.actions button{gap:8px}
+.job-list,.upcoming-list{display:flex;flex-direction:column;gap:14px}
+.plan-card{padding:18px}
+.seg-tabs{gap:8px;margin:18px 0}
+.datebar{margin-bottom:22px}
+.date-display{min-width:190px;flex-direction:row;gap:12px;justify-content:center}
+.date-display-text{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.date-calendar-button{position:relative;width:34px;height:34px;min-height:34px;margin:0!important;padding:0!important;display:grid;place-items:center;background:#172338;border:1px solid #29415f;border-radius:9px;color:#c9dcf4;cursor:pointer}
+.date-calendar-button:hover{background:#1d3452;color:#fff}
+.date-calendar-button input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important}
+.date-calendar-button input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.datebar.compact .date-display{min-width:145px;gap:8px}
+.datebar.compact .date-calendar-button{width:29px;height:29px;min-height:29px}
+.cleaning-picker-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin:4px 0 20px}
+.cleaning-picker{padding:18px;background:#0b1321;border:1px solid var(--line);border-radius:15px}
+.picker-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;color:#e7f0fb}
+.picker-heading span{font-size:11px;color:var(--muted)}
+.choice-buttons{display:flex;flex-wrap:wrap;gap:9px;max-height:300px;overflow:auto;padding:2px}
+.choice-chip{min-height:40px!important;padding:9px 12px!important;border:1px solid var(--line)!important;border-radius:10px!important;background:#111b2b!important;color:#aebed2!important;cursor:pointer;transition:.15s ease}
+.choice-chip:hover{border-color:#3d5f87!important;background:#15253b!important;color:#eaf3ff!important}
+.choice-chip.active{background:#1c385b!important;border-color:#4f84bd!important;color:#fff!important;box-shadow:0 0 0 1px rgba(88,166,255,.08)}
+.cleaning-preview{margin-top:4px}
+@media(max-width:800px){.cleaning-picker-grid{grid-template-columns:1fr}.cleaning-picker{padding:15px}.choice-buttons{max-height:260px}.date-display{min-width:0;flex:1}.datebar{gap:3px}.section-top{gap:12px}}
