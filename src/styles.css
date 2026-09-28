@@ -108,3 +108,7 @@ label>input,label>select,label>textarea{margin-top:8px}
 .choice-chip.active{background:#1c385b!important;border-color:#4f84bd!important;color:#fff!important;box-shadow:0 0 0 1px rgba(88,166,255,.08)}
 .cleaning-preview{margin-top:4px}
 @media(max-width:800px){.cleaning-picker-grid{grid-template-columns:1fr}.cleaning-picker{padding:15px}.choice-buttons{max-height:260px}.date-display{min-width:0;flex:1}.datebar{gap:3px}.section-top{gap:12px}}
+
+/* Settings form polish */
+.settings-form-card{max-width:760px;padding:28px}.settings-avatar-row{display:flex;align-items:center;gap:16px;padding-bottom:24px;margin-bottom:24px;border-bottom:1px solid var(--line)}.settings-fields{display:flex;flex-direction:column;gap:2px}.settings-fields label{margin-bottom:18px}.settings-fields label>input,.settings-fields label>select,.settings-fields label>textarea{margin-top:9px}.settings-fields textarea{min-height:110px}.settings-role{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 13px;border:1px solid var(--line);border-radius:10px;background:#0b1321;color:#aab8cb;margin:2px 0 20px}.settings-role b{color:#eef5ff;font-weight:600}.settings-save{width:100%;justify-content:center;min-height:46px}.settings-avatar-row .profile-avatar{flex:none}.settings-avatar-row .upload-btn{margin-top:0;cursor:pointer}
+@media(max-width:800px){.settings-form-card{padding:20px}.settings-avatar-row{align-items:flex-start}.settings-avatar-row .profile-avatar{width:86px;height:86px}}
