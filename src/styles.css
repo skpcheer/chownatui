@@ -148,3 +148,11 @@ label>input,label>select,label>textarea{margin-top:8px}
  .print-attendance th:nth-child(4),.print-attendance td:nth-child(4){width:15%}
  .print-attendance th:nth-child(5),.print-attendance td:nth-child(5){width:20%}
 }
+
+/* v16: multi-person duty chips + appointment availability guard */
+.duty-editor{grid-template-columns:150px 1fr auto}
+.duty-choices{max-height:150px;overflow:auto;padding:3px}
+.appointment-choices{max-height:210px;overflow:auto;padding:3px}
+.choice-chip.unavailable{border-color:#5b2a34;background:#1b1117;color:#7f8b9f;cursor:not-allowed}
+.availability-warning{margin:8px 0 10px;padding:9px 11px;border:1px solid #6b3b2b;background:#261a13;color:#ffc18f;border-radius:10px;font-size:12px}
+@media(max-width:800px){.duty-editor{grid-template-columns:1fr}.duty-choices,.appointment-choices{max-height:220px}}
