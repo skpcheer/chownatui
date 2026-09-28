@@ -36,3 +36,6 @@ using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::tex
 
 -- Avatar zoom/crop scale for profile pictures
 alter table public.profiles add column if not exists avatar_scale numeric not null default 1 check (avatar_scale >= 1 and avatar_scale <= 2.5);
+
+-- Horizontal crop position for profile pictures (-50 left to 50 right)
+alter table public.profiles add column if not exists avatar_x numeric not null default 0 check (avatar_x >= -50 and avatar_x <= 50);
