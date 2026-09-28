@@ -248,7 +248,99 @@ function AttendanceManager({me,data,refresh}){
  <div className="attendance-table"><div className="att-head"><span>ลำดับ</span><span>รูป</span><span>ชื่อ-สกุล</span><span>ชั้น</span><span>ชื่อเล่น</span><span>ฝ่าย</span><span>สถานะ</span><span>หมายเหตุ</span></div>{members.map(m=><div className="att-row" key={m.id}><span>{m.sort_no}</span><Avatar user={m} /><div>{m.full_name}</div><span>{m.class_name}</span><span>{m.nickname}</span><span>{m.team}</span><select value={rows[m.id]||ATT_TYPES[type][0]} onChange={e=>setRows(r=>({...r,[m.id]:e.target.value}))}>{ATT_TYPES[type].map(x=><option key={x}>{x}</option>)}</select><input value={note[m.id]||''} onChange={e=>setNote(n=>({...n,[m.id]:e.target.value}))} placeholder="หมายเหตุ (ถ้ามี)"/></div>)}</div><AttendanceStats data={data} members={members}/></div>
 }
 
-function AttendanceStats({data,members}){const [date,setDate]=useState(todayISO()),[type,setType]=useState('rehearsal'),[open,setOpen]=useState(false),[filter,setFilter]=useState('all');const rows=data.attendance.filter(x=>x.date===date&&x.type===type);const labels=ATT_TYPES[type];const count=s=>rows.filter(x=>x.status===s).length;const filtered=filter==='all'?rows:rows.filter(x=>x.status===filter);return <div className="card attendance-stats"><div className="section-top"><div><h3>สถิติย้อนหลัง</h3><p>กดดูรายละเอียดว่าใครมา ลา หรือขาด</p></div><div className="checkin-toolbar"><DatePicker compact date={date} setDate={setDate}/><label className="compact-field"><select value={type} onChange={e=>setType(e.target.value)}><option value="rehearsal">ซ้อมน้อง</option><option value="evening">อยู่เย็น</option><option value="sleep">นอนโรงเรียน</option></select></label></div></div><div className="attendance-stat-buttons"><button className="stat-view-btn" onClick={()=>{setFilter('all');setOpen(true)}}>ทั้งหมด <b>{rows.length}</b></button>{labels.map(s=><button className="stat-view-btn" key={s} onClick={()=>{setFilter(s);setOpen(true)}}>{s} <b>{count(s)}</b></button>)}</div>{open&&<Modal title={`สถิติ ${fmt(date)}`} close={()=>setOpen(false)}><div className="stat-popup-toolbar">{labels.map(s=><button key={s} className={filter===s?'choice-chip active':'choice-chip'} onClick={()=>setFilter(s)}>{s} {count(s)}</button>)}</div><div className="stat-scroll">{filtered.map(r=>{const m=members.find(x=>x.id===r.member_id);return <div className="stat-person" key={r.id}><Avatar user={m}/><div><b>{m?.full_name||'ไม่พบข้อมูล'}</b><small>{m?.class_name||''} · {m?.nickname||''}</small></div><span>{r.status}</span>{r.note&&<em>{r.note}</em>}</div>)}{!filtered.length&&<div className="empty">ยังไม่มีข้อมูลในหมวดนี้</div>}</div></Modal>}</div>}
+function AttendanceStats({data, members}) {
+  const [date, setDate] = useState(todayISO());
+  const [type, setType] = useState('rehearsal');
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState('all');
+
+  const rows = data.attendance.filter((x) => x.date === date && x.type === type);
+  const labels = ATT_TYPES[type];
+  const count = (status) => rows.filter((x) => x.status === status).length;
+  const filtered = filter === 'all' ? rows : rows.filter((x) => x.status === filter);
+
+  return (
+    <div className="card attendance-stats">
+      <div className="section-top">
+        <div>
+          <h3>สถิติย้อนหลัง</h3>
+          <p>กดดูรายละเอียดว่าใครมา ลา หรือขาด</p>
+        </div>
+        <div className="checkin-toolbar">
+          <DatePicker compact date={date} setDate={setDate} />
+          <label className="compact-field">
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="rehearsal">ซ้อมน้อง</option>
+              <option value="evening">อยู่เย็น</option>
+              <option value="sleep">นอนโรงเรียน</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div className="attendance-stat-buttons">
+        <button
+          className="stat-view-btn"
+          onClick={() => {
+            setFilter('all');
+            setOpen(true);
+          }}
+        >
+          ทั้งหมด <b>{rows.length}</b>
+        </button>
+        {labels.map((status) => (
+          <button
+            className="stat-view-btn"
+            key={status}
+            onClick={() => {
+              setFilter(status);
+              setOpen(true);
+            }}
+          >
+            {status} <b>{count(status)}</b>
+          </button>
+        ))}
+      </div>
+
+      {open && (
+        <Modal title={`สถิติ ${fmt(date)}`} close={() => setOpen(false)}>
+          <div className="stat-popup-toolbar">
+            {labels.map((status) => (
+              <button
+                key={status}
+                className={filter === status ? 'choice-chip active' : 'choice-chip'}
+                onClick={() => setFilter(status)}
+              >
+                {status} {count(status)}
+              </button>
+            ))}
+          </div>
+
+          <div className="stat-scroll">
+            {filtered.map((row) => {
+              const member = members.find((x) => x.id === row.member_id);
+              return (
+                <div className="stat-person" key={row.id}>
+                  <Avatar user={member} />
+                  <div>
+                    <b>{member?.full_name || 'ไม่พบข้อมูล'}</b>
+                    <small>
+                      {member?.class_name || ''} · {member?.nickname || ''}
+                    </small>
+                  </div>
+                  <span>{row.status}</span>
+                  {row.note && <em>{row.note}</em>}
+                </div>
+              );
+            })}
+            {!filtered.length && <div className="empty">ยังไม่มีข้อมูลในหมวดนี้</div>}
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
 function CleaningManager({me,data,refresh}){
  const [date,setDate]=useState(todayISO()),[people,setPeople]=useState([]),[rooms,setRooms]=useState([]);const existing=data.cleaning.filter(x=>x.date===date);
  useEffect(()=>{setPeople(existing.flatMap(x=>x.user_ids||[]));setRooms([...new Set(existing.flatMap(x=>x.rooms||[]))])},[date,data.cleaning]);
