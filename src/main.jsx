@@ -392,10 +392,10 @@ function Members({me,data}){
  };
  const byId=Object.fromEntries(fields.map(f=>[f.id,f]));
  const renderField=(f,u,c,slots,d)=>{if(f.visible===false)return null;const style={gridColumn:String(Math.max(1,Math.min(12,f.x||1)))+' / span '+String(Math.max(1,Math.min(12-(f.x||1)+1,f.w||4))),gridRow:String(Math.max(1,f.y||1))+' / span '+String(Math.max(1,f.h||1)),fontSize:f.fontSize?`${f.fontSize}px`:undefined,fontWeight:f.fontWeight||undefined,textAlign:f.textAlign||undefined};
-  if(f.id==='identity')return <div className="member-layout-block member-identity" style={style}><div><h3>{c?.nickname||'ยังไม่มีชื่อเล่น'}</h3><strong>{c?.full_name||'ยังไม่เชื่อม'}</strong><small>{positionText(u)}{u.team?` · ${u.team}`:''}</small></div></div>;
+  if(f.id==='identity')return <div className="member-layout-block member-identity" style={style}><div><h3>{u.display_name||'ยังไม่มีชื่อ'}</h3><strong>{c?.full_name||'ยังไม่เชื่อม'}</strong><small>{positionText(u)}{u.team?` · ${u.team}`:''}</small></div></div>;
   if(f.id==='avatar')return <div className="member-layout-block member-layout-avatar" style={style}><Avatar user={{...u,display_name:displayName(u),avatar_url:c?.avatar_url||u.avatar_url}}/></div>;
   if(f.id==='bio')return <div className="member-layout-block member-bio-top" style={style}>{u.bio||'ยังไม่มีคำแนะนำตัว'}</div>;
-  if(f.id==='basic')return <div className="member-layout-block member-mini-info" style={style}><span>ชั้น <b>{c?.class_name||'—'}</b></span><span>วันเกิด <b>{birthdayText(u.birthday)}</b></span></div>;
+  if(f.id==='basic')return <div className="member-layout-block member-mini-info" style={style}><span>ชั้น <b>{c?.class_name||'—'}</b></span><span>ชื่อเล่น <b>{c?.nickname||'—'}</b></span><span>วันเกิด <b>{birthdayText(u.birthday)}</b></span></div>;
   if(f.id==='date')return <div className="member-layout-block" style={style}><label>วันที่<input type="date" value={d} onChange={e=>setDates(v=>({...v,[u.id]:e.target.value}))}/></label></div>;
   return <div className="member-layout-block availability-block" style={style}><span>●</span><b>{slots.length?slots.map(x=>`${x.start_time.slice(0,5)}–${x.end_time.slice(0,5)}`).join(' · '):'ยังไม่ได้ลงเวลาว่าง'}</b></div>;
  };
@@ -735,7 +735,7 @@ function AvatarCropModal({src,scale,x,y,setScale,setX,setY,onCancel,onConfirm}){
   <div className="crop-preview"><div className="crop-window"><img src={src} alt="พรีวิว" style={{transform:`translate(${x}%,${y}%) scale(${scale})`}}/></div></div>
   <div className="crop-controls">
    <div className="crop-direction"><button className="secondary" type="button" onClick={()=>setY(v=>v-5)}>↑</button><div><button className="secondary" type="button" onClick={()=>setX(v=>v-5)}>←</button><button className="secondary" type="button" onClick={()=>{setX(0);setY(0)}}>รีเซ็ต</button><button className="secondary" type="button" onClick={()=>setX(v=>v+5)}>→</button></div><button className="secondary" type="button" onClick={()=>setY(v=>v+5)}>↓</button></div>
-   <div className="crop-zoom"><button className="secondary" type="button" onClick={()=>setScale(v=>Math.max(.6,Number((v-.1).toFixed(2))))}><ZoomOut/><span>ซูมออก</span></button><b>{Math.round(scale*100)}%</b><button className="secondary" type="button" onClick={()=>setScale(v=>Math.min(3,Number((v+.1).toFixed(2))))}><ZoomIn/><span>ซูมเข้า</span></button></div>
+   <div className="crop-zoom"><button className="secondary" type="button" onClick={()=>setScale(v=>Math.max(.6,Number((v-.1).toFixed(2))))}><ZoomOut/><span>ซูมออก</span></button><button className="secondary" type="button" onClick={()=>{setScale(1);setX(0);setY(0)}}>พอดีกรอบ</button><b>{Math.round(scale*100)}%</b><button className="secondary" type="button" onClick={()=>setScale(v=>Math.min(3,Number((v+.1).toFixed(2))))}><ZoomIn/><span>ซูมเข้า</span></button></div>
   </div>
   <div className="crop-actions"><button className="secondary" onClick={onCancel}>ยกเลิก</button><button className="primary" onClick={onConfirm}><Check/>ใช้รูปนี้</button></div>
  </div></div>
