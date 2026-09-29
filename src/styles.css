@@ -343,3 +343,31 @@ label>input,label>select,label>textarea{margin-top:8px}
 .range-row{display:grid;grid-template-columns:minmax(0,1fr) 42px;gap:8px;align-items:center}
 .range-row input[type=range]{width:100%;accent-color:#78b8ee}
 .range-row span{font-size:9px;text-align:right;color:#d3e4f5}
+
+/* v2.9.2 member layout stability pass */
+.compact-member-card{overflow:hidden!important}
+.member-card-layout{height:auto!important;min-height:0!important;grid-auto-flow:row!important;align-items:stretch!important}
+.member-layout-block{min-height:0!important;max-width:100%!important;overflow:hidden!important}
+.member-identity>div{min-width:0!important;overflow:hidden!important}
+.member-identity h3,.member-identity strong,.member-identity small{display:block!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.member-bio-top,.member-mini-info,.availability-block{min-width:0!important;max-width:100%!important;overflow:hidden!important}
+.member-card-layout .member-layout-avatar{overflow:visible!important}
+.member-card-layout .member-layout-avatar .avatar{flex:none!important}
+
+/* A small, realistic design-board preview rather than large label boxes */
+.layout-preview{grid-template-rows:repeat(8,24px)!important;min-height:214px!important;max-width:760px!important;margin:0 auto!important;padding:10px!important;gap:4px!important}
+.layout-preview-block{padding:3px 6px!important;border:1px dashed #456789!important;background:rgba(24,43,67,.78)!important;border-radius:6px!important;min-width:0!important;min-height:0!important;overflow:hidden!important;line-height:1.1!important}
+.layout-preview-block.selected{outline:2px solid #78b8ee!important;outline-offset:1px!important}
+.layout-preview-sample{display:block;width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout-preview-identity{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;width:100%;min-width:0}
+.layout-preview-identity b{font-size:1.35em;font-weight:800;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.layout-preview-identity strong{font-size:1.02em;font-weight:700;line-height:1.05;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.layout-preview-identity small{font-size:.72em;color:#8fa4bd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.layout-preview-avatar{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#3f92f6,#7a68e8);font-weight:800;font-size:16px;margin:auto}
+.layout-preview-text{color:#b9c9dc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.availability-preview{color:#9ac8ff!important}
+.layout-size-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.layout-size-controls label{min-width:0}
+.layout-size-controls input[type=range]{width:100%;accent-color:#78b8ee}
+.layout-size-controls label span{font-size:8px;color:#b9cce2}
+@media(max-width:900px){.layout-preview{min-width:0;width:100%;grid-template-columns:repeat(12,minmax(16px,1fr))!important}}

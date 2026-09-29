@@ -385,27 +385,40 @@ function Members({me,data}){
  const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)==='members');
  const fields=Array.isArray(saved?.config?.fields)&&saved.config.fields.length?saved.config.fields:defaultFields;
  const byId=Object.fromEntries(fields.map(f=>[f.id,f]));
- const renderField=(f,u,c,slots,d)=>{if(f.visible===false)return null;const style={gridColumn:String(f.x||1)+' / span '+String(f.w||4),gridRow:String(f.y||1)+' / span '+String(f.h||1)};
-  if(f.id==='identity')return <div className="member-layout-block member-identity" style={style}><div><h3>{c?.nickname||displayName(u)||'—'}</h3><strong>{c?.full_name||'ยังไม่เชื่อม'}</strong><small>{positionText(u)}{u.team?` · ${u.team}`:''}</small></div></div>;
+ const renderField=(f,u,c,slots,d)=>{if(f.visible===false)return null;const style={gridColumn:String(Math.max(1,Math.min(12,f.x||1)))+' / span '+String(Math.max(1,Math.min(12-(f.x||1)+1,f.w||4))),gridRow:String(Math.max(1,f.y||1))+' / span '+String(Math.max(1,f.h||1)),fontSize:f.fontSize?`${f.fontSize}px`:undefined,fontWeight:f.fontWeight||undefined,textAlign:f.textAlign||undefined};
+  if(f.id==='identity')return <div className="member-layout-block member-identity" style={style}><div><h3>{c?.nickname||'ยังไม่มีชื่อเล่น'}</h3><strong>{c?.full_name||'ยังไม่เชื่อม'}</strong><small>{positionText(u)}{u.team?` · ${u.team}`:''}</small></div></div>;
   if(f.id==='avatar')return <div className="member-layout-block member-layout-avatar" style={style}><Avatar user={{...u,display_name:displayName(u),avatar_url:c?.avatar_url||u.avatar_url}}/></div>;
   if(f.id==='bio')return <div className="member-layout-block member-bio-top" style={style}>{u.bio||'ยังไม่มีคำแนะนำตัว'}</div>;
   if(f.id==='basic')return <div className="member-layout-block member-mini-info" style={style}><span>ชั้น <b>{c?.class_name||'—'}</b></span><span>วันเกิด <b>{birthdayText(u.birthday)}</b></span></div>;
   if(f.id==='date')return <div className="member-layout-block" style={style}><label>วันที่<input type="date" value={d} onChange={e=>setDates(v=>({...v,[u.id]:e.target.value}))}/></label></div>;
   return <div className="member-layout-block availability-block" style={style}><span>●</span><b>{slots.length?slots.map(x=>`${x.start_time.slice(0,5)}–${x.end_time.slice(0,5)}`).join(' · '):'ยังไม่ได้ลงเวลาว่าง'}</b></div>;
  };
- return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid compact-member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);return <div className="member-card compact-member-card" key={u.id}><div className="member-card-layout">{fields.map(f=>renderField(f,u,c,slots,d))}</div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
+ return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid compact-member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);const maxRow=Math.max(1,...fields.filter(f=>f.visible!==false).map(f=>(f.y||1)+(f.h||1)-1));return <div className="member-card compact-member-card" key={u.id}><div className="member-card-layout" style={{gridTemplateRows:`repeat(${maxRow},22px)`}}>{fields.map(f=>renderField(f,u,c,slots,d))}</div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
 }
 
 function LayoutManager({data,refresh}){
  const defaults={members:[{id:'identity',label:'ชื่อเล่น · ชื่อ-นามสกุล · ตำแหน่ง',x:4,y:1,w:8,h:2,visible:true},{id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:3,visible:true},{id:'bio',label:'แนะนำตัว',x:4,y:3,w:8,h:1,visible:true},{id:'basic',label:'ชั้น · วันเกิด',x:4,y:4,w:5,h:1,visible:true},{id:'date',label:'วันที่',x:9,y:4,w:3,h:1,visible:true},{id:'availability',label:'เวลาว่าง',x:4,y:5,w:8,h:1,visible:true}],checkin:[{id:'full_name',label:'ชื่อ-สกุล',x:1,y:1,w:5,h:1,visible:true},{id:'nickname',label:'ชื่อเล่น',x:6,y:1,w:3,h:1,visible:true},{id:'class_name',label:'ชั้น',x:9,y:1,w:2,h:1,visible:true},{id:'team',label:'ฝ่าย',x:11,y:1,w:2,h:1,visible:true},{id:'sort_no',label:'ลำดับ',x:1,y:2,w:2,h:1,visible:true},{id:'show_in_checkin',label:'แสดงในเช็คชื่อ',x:3,y:2,w:4,h:1,visible:true}]};
  const [kind,setKind]=useState('members'),[fields,setFields]=useState(defaults.members),[drag,setDrag]=useState(null),[selected,setSelected]=useState('identity'),[msg,setMsg]=useState('');
- useEffect(()=>{const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)===kind);const next=saved?.config?.fields?.length?saved.config.fields:defaults[kind];setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null)},[kind,data.layoutConfigs]);
+ function normalizeLayoutFields(list){
+  const sorted=(list||[]).map(f=>({...f,x:Math.max(1,Math.min(12,f.x||1)),y:Math.max(1,f.y||1),w:Math.max(1,Math.min(12,f.w||1)),h:Math.max(1,f.h||1)}));
+  const placed=[];
+  const overlap=(a,b)=>a.visible!==false&&b.visible!==false&&a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+  for(const f of sorted){
+    if(f.x+f.w-1>12) f.w=12-f.x+1;
+    while(placed.some(p=>overlap(f,p))){f.y+=1;}
+    placed.push(f);
+  }
+  return sorted;
+ }
+ useEffect(()=>{const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)===kind);const raw=saved?.config?.fields?.length?saved.config.fields:defaults[kind];const next=kind==='members'?normalizeLayoutFields(raw):raw;setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null)},[kind,data.layoutConfigs]);
  async function save(){const r=await supabase.from('layout_configs').upsert({target:kind,config:{fields},updated_at:new Date().toISOString()},{onConflict:'target'});if(r.error)alert(r.error.message);else{setMsg('บันทึกการแสดงผลแล้ว');await refresh();setTimeout(()=>setMsg(''),1800)}}
  function toggle(id){setFields(v=>v.map(f=>f.id===id?{...f,visible:f.visible===false}:f))}
  function move(id,x,y){setFields(v=>v.map(f=>f.id===id?{...f,x,y}:f))}
  function styleField(id,patch){setFields(v=>v.map(f=>f.id===id?{...f,...patch}:f))}
  const selectedField=fields.find(f=>f.id===selected);
  const previewFields=fields.filter(f=>f.visible!==false);
+ const previewText=(f)=>({identity:'กอตอ\nชื่อ-นามสกุล\nประธานฝ่าย',avatar:'รูป',bio:'แนะนำตัวสั้น ๆ',basic:'ชั้น ม.6   วันเกิด 12 ต.ค.',date:'29/09/2026',availability:'● 17:00–20:00'})[f.id]||f.label;
+ const clampField=(f,patch)=>{const next={...f,...patch};next.x=Math.max(1,Math.min(12,next.x||1));next.y=Math.max(1,Math.min(10,next.y||1));next.w=Math.max(1,Math.min(12-next.x+1,next.w||1));next.h=Math.max(1,Math.min(6,next.h||1));return next};
  return (
   <section className="layout-manager">
     <div className="section-top">
@@ -480,6 +493,10 @@ function LayoutManager({data,refresh}){
                 <option value="right">ขวา</option>
               </select>
             </label>
+            <div className="layout-size-controls">
+              <label>ความกว้าง <input type="range" min="1" max="12" value={selectedField.w||1} onChange={e=>styleField(selectedField.id,clampField(selectedField,{w:Number(e.target.value)}))}/><span>{selectedField.w||1}/12</span></label>
+              <label>ความสูง <input type="range" min="1" max="6" value={selectedField.h||1} onChange={e=>styleField(selectedField.id,clampField(selectedField,{h:Number(e.target.value)}))}/><span>{selectedField.h||1}/6</span></label>
+            </div>
           </div>
         )}
         <p className="muted">เลือกองค์ประกอบใน Preview เพื่อปรับขนาดและความหนาได้ ข้อมูลจริงยังไม่ถูกลบ</p>
@@ -520,7 +537,7 @@ function LayoutManager({data,refresh}){
                 textAlign: f.textAlign || 'left'
               }}
             >
-              <span>{f.label}</span>
+              {f.id==='avatar' ? <span className="layout-preview-avatar">ก</span> : f.id==='identity' ? <span className="layout-preview-identity"><b>กอตอ</b><strong>ชื่อ-นามสกุล</strong><small>ประธานฝ่าย · โค้ด</small></span> : f.id==='bio' ? <span className="layout-preview-text">แนะนำตัวสั้น ๆ ของสมาชิก</span> : f.id==='basic' ? <span className="layout-preview-text">ชั้น ม.6　•　วันเกิด 12 ต.ค.</span> : f.id==='date' ? <span className="layout-preview-text">วันที่ 29/09/2026</span> : <span className="layout-preview-text availability-preview">● 17:00–20:00</span>}
             </div>
           ))}
         </div>
