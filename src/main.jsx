@@ -406,7 +406,130 @@ function LayoutManager({data,refresh}){
  function styleField(id,patch){setFields(v=>v.map(f=>f.id===id?{...f,...patch}:f))}
  const selectedField=fields.find(f=>f.id===selected);
  const previewFields=fields.filter(f=>f.visible!==false);
- return <section className="layout-manager"><div className="section-top"><div><h2>🎛️ การแสดงผล</h2><p>ลากองค์ประกอบเพื่อจัดตำแหน่ง และคลิกองค์ประกอบเพื่อปรับตัวอักษร</p></div><button className="primary" onClick={save}><Save/>บันทึก Layout</button></div><div className="seg-tabs"><button className={kind==='members'?'active':''} onClick={()=>setKind('members')}>Layout — สมาตุ้ยทั้งหมด</button><button className={kind==='checkin'?'active':''} onClick={()=>setKind('checkin')}>Layout — ข้อมูลเช็คชื่อ</button></div><div className="layout-editor"><div className="layout-side"><b>องค์ประกอบ</b>{fields.map(f=><div className={`layout-field-row ${f.visible===false?'off':''} ${selected===f.id?'selected':''}`} key={f.id} draggable onDragStart={()=>setDrag(f.id)} onClick={()=>setSelected(f.id)}><span>⠿</span><span>{f.label}</span><button onClick={e=>{e.stopPropagation();toggle(f.id)}}>{f.visible===false?'ซ่อน':'แสดง'}</button></div>)}{selectedField&&<div className="layout-style-panel"><b>ปรับรูปแบบ: {selectedField.label}</b><label>ขนาดตัวอักษร<div className="range-row"><input type="range" min="8" max="32" value={selectedField.fontSize||10} onChange={e=>styleField(selectedField.id,{fontSize:Number(e.target.value)})}/><span>{selectedField.fontSize||10}px</span></div></label><label>ความหนา<select value={selectedField.fontWeight||500} onChange={e=>styleField(selectedField.id,{fontWeight:Number(e.target.value)})}><option value="400">ปกติ</option><option value="500">กลาง</option><option value="600">กึ่งหนา</option><option value="700">หนา</option><option value="800">หนามาก</option></select></label><label>การจัดข้อความ<select value={selectedField.textAlign||'left'} onChange={e=>styleField(selectedField.id,{textAlign:e.target.value})}><option value="left">ซ้าย</option><option value="center">กลาง</option><option value="right">ขวา</option></select></label></div>}<p className="muted">เลือกองค์ประกอบใน Preview เพื่อปรับขนาดและความหนาได้ ข้อมูลจริงยังไม่ถูกลบ</p></div><div className="layout-preview-wrap"><div className="layout-preview-head"><b>Preview จริง</b><small>ลากตำแหน่ง • คลิกเพื่อปรับตัวอักษร</small></div><div className="layout-preview" onDragOver={e=>e.preventDefault()}>{Array.from({length:72},(_,i)=>{const x=i%12+1,y=Math.floor(i/12)+1;return <div key={i} className="layout-cell" style={{gridColumn:x,gridRow:y}} onDragOver={e=>e.preventDefault()} onDrop={()=>drag&&move(drag,x,y)} />})}{previewFields.map(f=><div key={f.id} className={`layout-preview-block ${selected===f.id?'selected':''}`} draggable onDragStart={()=>setDrag(f.id)} onClick={()=>setSelected(f.id)} style={{gridColumn:String(f.x)+' / span '+String(f.w),gridRow:String(f.y)+' / span '+String(f.h),fontSize:String(f.fontSize||10)+'px',fontWeight:f.fontWeight||500,textAlign:f.textAlign||'left'}}><span>{f.label}</span></div>)}</div></div></div>{msg&&<div className="notice">{msg}</div></section>
+ return (
+  <section className="layout-manager">
+    <div className="section-top">
+      <div>
+        <h2>🎛️ การแสดงผล</h2>
+        <p>ลากองค์ประกอบเพื่อจัดตำแหน่ง และคลิกองค์ประกอบเพื่อปรับตัวอักษร</p>
+      </div>
+      <button className="primary" onClick={save}><Save />บันทึก Layout</button>
+    </div>
+
+    <div className="seg-tabs">
+      <button className={kind === 'members' ? 'active' : ''} onClick={() => setKind('members')}>Layout — สมาตุ้ยทั้งหมด</button>
+      <button className={kind === 'checkin' ? 'active' : ''} onClick={() => setKind('checkin')}>Layout — ข้อมูลเช็คชื่อ</button>
+    </div>
+
+    <div className="layout-editor">
+      <div className="layout-side">
+        <b>องค์ประกอบ</b>
+        {fields.map((f) => (
+          <div
+            className={`layout-field-row ${f.visible === false ? 'off' : ''} ${selected === f.id ? 'selected' : ''}`}
+            key={f.id}
+            draggable
+            onDragStart={() => setDrag(f.id)}
+            onClick={() => setSelected(f.id)}
+          >
+            <span>⠿</span>
+            <span>{f.label}</span>
+            <button onClick={(e) => { e.stopPropagation(); toggle(f.id); }}>
+              {f.visible === false ? 'ซ่อน' : 'แสดง'}
+            </button>
+          </div>
+        ))}
+
+        {selectedField && (
+          <div className="layout-style-panel">
+            <b>ปรับรูปแบบ: {selectedField.label}</b>
+            <label>
+              ขนาดตัวอักษร
+              <div className="range-row">
+                <input
+                  type="range"
+                  min="8"
+                  max="32"
+                  value={selectedField.fontSize || 10}
+                  onChange={(e) => styleField(selectedField.id, { fontSize: Number(e.target.value) })}
+                />
+                <span>{selectedField.fontSize || 10}px</span>
+              </div>
+            </label>
+            <label>
+              ความหนา
+              <select
+                value={selectedField.fontWeight || 500}
+                onChange={(e) => styleField(selectedField.id, { fontWeight: Number(e.target.value) })}
+              >
+                <option value="400">ปกติ</option>
+                <option value="500">กลาง</option>
+                <option value="600">กึ่งหนา</option>
+                <option value="700">หนา</option>
+                <option value="800">หนามาก</option>
+              </select>
+            </label>
+            <label>
+              การจัดข้อความ
+              <select
+                value={selectedField.textAlign || 'left'}
+                onChange={(e) => styleField(selectedField.id, { textAlign: e.target.value })}
+              >
+                <option value="left">ซ้าย</option>
+                <option value="center">กลาง</option>
+                <option value="right">ขวา</option>
+              </select>
+            </label>
+          </div>
+        )}
+        <p className="muted">เลือกองค์ประกอบใน Preview เพื่อปรับขนาดและความหนาได้ ข้อมูลจริงยังไม่ถูกลบ</p>
+      </div>
+
+      <div className="layout-preview-wrap">
+        <div className="layout-preview-head">
+          <b>Preview จริง</b>
+          <small>ลากตำแหน่ง • คลิกเพื่อปรับตัวอักษร</small>
+        </div>
+        <div className="layout-preview" onDragOver={(e) => e.preventDefault()}>
+          {Array.from({ length: 72 }, (_, i) => {
+            const x = (i % 12) + 1;
+            const y = Math.floor(i / 12) + 1;
+            return (
+              <div
+                key={i}
+                className="layout-cell"
+                style={{ gridColumn: x, gridRow: y }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => drag && move(drag, x, y)}
+              />
+            );
+          })}
+
+          {previewFields.map((f) => (
+            <div
+              key={f.id}
+              className={`layout-preview-block ${selected === f.id ? 'selected' : ''}`}
+              draggable
+              onDragStart={() => setDrag(f.id)}
+              onClick={() => setSelected(f.id)}
+              style={{
+                gridColumn: `${f.x} / span ${f.w}`,
+                gridRow: `${f.y} / span ${f.h}`,
+                fontSize: `${f.fontSize || 10}px`,
+                fontWeight: f.fontWeight || 500,
+                textAlign: f.textAlign || 'left'
+              }}
+            >
+              <span>{f.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {msg && <div className="notice">{msg}</div>}
+  </section>
+ );
 }
 
 function AttendanceManager({me,data,refresh}){
