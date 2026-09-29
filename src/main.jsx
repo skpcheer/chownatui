@@ -4,7 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import {
  CalendarDays,Clock3,Users,ClipboardList,Settings,LogOut,Plus,Trash2,Edit3,ChevronLeft,ChevronRight,
  Shield,MapPin,Search,X,UserPlus,Camera,Save,LockKeyhole,CalendarRange,CheckCircle2,ClipboardCheck,
- BriefcaseBusiness,UserCog,Menu,Shuffle,Timer,Home as HomeIcon,ZoomIn,ZoomOut,Move,Check,Bell,ArrowUp,ArrowDown
+ BriefcaseBusiness,UserCog,Menu,Shuffle,Timer,Home as HomeIcon,ZoomIn,ZoomOut,Move,Check,Bell,ArrowUp,ArrowDown,GripVertical
 } from 'lucide-react';
 import './styles.css';
 
@@ -83,7 +83,7 @@ const EVENT_COLORS=[
 const eventColorStyle=x=>x?.color?{borderLeftColor:x.color, '--event-color':x.color}:{};
 
 async function loadData(){
- const p=await supabase.from('profiles').select('id,email,display_name,role,custom_role_id,department_position,alumni_generation,team,avatar_url,avatar_scale,avatar_x,avatar_y,bio,birthday,created_at').order('display_name');
+ const p=await supabase.from('profiles').select('id,email,display_name,role,custom_role_id,department_position,alumni_generation,team,avatar_url,avatar_scale,avatar_x,avatar_y,bio,birthday,created_at,custom_fields').order('display_name');
  if(p.error)throw p.error;
  const queries=await Promise.all([
   supabase.from('availability').select('*').order('date').order('start_time'),
@@ -102,19 +102,20 @@ async function loadData(){
   supabase.from('custom_roles').select('*').order('name'),
   supabase.from('team_options').select('*').order('sort_order').order('name'),
   supabase.from('notifications').select('*').order('created_at',{ascending:false}),
-  supabase.from('announcements').select('*').order('created_at',{ascending:false})
+  supabase.from('announcements').select('*').order('created_at',{ascending:false}),
+  supabase.from('layout_configs').select('*')
  ]);
  for(const [i,q] of queries.entries())if(q.error&&i!==15&&i!==16)throw q.error;
- const [a,s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings,customRoles,teamOptions,notifications,announcements]=queries.map(x=>x.data||[]);
- return {users:p.data||[],avail:a,dayStatus:s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings,customRoles,teamOptions,notifications,announcements};
+ const [a,s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings,customRoles,teamOptions,notifications,announcements,layoutConfigs]=queries.map(x=>x.data||[]);
+ return {users:p.data||[],avail:a,dayStatus:s,appointments,plans,topics,duties,planMembers,appointmentMembers,planSlots,attendance,cleaning,checkins,settings,customRoles,teamOptions,notifications,announcements,layoutConfigs};
 }
 
 function App(){
- const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[data,setData]=useState({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[],notifications:[],announcements:[]}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[authMode,setAuthMode]=useState('login');
+ const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[data,setData]=useState({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[],notifications:[],announcements:[],layoutConfigs:[]}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[authMode,setAuthMode]=useState('login');
  const refresh=async()=>{try{setError('');const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===session?.user?.id)||null)}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}};
  useEffect(()=>{if(!supabase){setError('ยังไม่ได้ตั้งค่า Supabase');setLoading(false);return}
   supabase.auth.getSession().then(async({data})=>{setSession(data.session);if(data.session){try{const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===data.session.user.id)||null)}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}}setLoading(false)});
-  const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);if(!s){setProfile(null);setData({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[],notifications:[],announcements:[]});return}setTimeout(async()=>{try{const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===s.user.id)||null);setError('')}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}},0)});return()=>l.subscription.unsubscribe()},[]);
+  const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);if(!s){setProfile(null);setData({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[],notifications:[],announcements:[],layoutConfigs:[]});return}setTimeout(async()=>{try{const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===s.user.id)||null);setError('')}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}},0)});return()=>l.subscription.unsubscribe()},[]);
  if(loading)return <div className="auth"><div className="auth-card"><div className="brand">chownatui<span>.</span></div><p className="tag">กำลังเชื่อมต่อระบบ...</p></div></div>;
  if(!session||!profile)return <Auth mode={authMode} setMode={setAuthMode} error={error} setError={setError}/>;
  return <Dashboard me={profile} data={data} refresh={refresh} setProfile={setProfile} error={error} logout={async()=>{await supabase.auth.signOut();setSession(null)}}/>;
@@ -349,12 +350,12 @@ function AnnouncementManager({me,data,refresh}){
 }
 
 function Manage({me,data,refresh,defaultTab}){
- const tabs=[['announcements','ประกาศ'],['plans','แผนงานระยะยาว'],['appointments','นัดหมาย'],...(roleRank[me.role]>=1?[['people','จัดการสมาชิก']]:[]),...(isFullAdmin(me)?[['teams','ฝ่าย'],['roles','ยศและสิทธิ์']]:[])];
+ const tabs=[['announcements','ประกาศ'],['plans','แผนงานระยะยาว'],['appointments','นัดหมาย'],...(roleRank[me.role]>=1?[['people','จัดการสมาชิก'],['layout','การแสดงผล']]:[]),...(isFullAdmin(me)?[['teams','ฝ่าย'],['roles','ยศและสิทธิ์']]:[])];
  const [tab,setTab]=useState(defaultTab);return <section><div className="section-top"><div><h2>⚙️ จัดการตุ้ย</h2><p>{isFullAdmin(me)?'จัดการได้ทุกอย่าง รวมถึงฝ่ายและยศ':'เพิ่มงาน แผนงาน และจัดการข้อมูลที่ได้รับอนุญาต'}</p></div></div><div className="seg-tabs manage-tabs">{tabs.map(([id,t])=><button className={tab===id?'active':''} onClick={()=>setTab(id)} key={id}>{t}</button>)}</div>
  {tab==='announcements'&&canAnnounce(me)&&<AnnouncementManager me={me} data={data} refresh={refresh}/>}
  {tab==='plans'&&<PlanManager me={me} data={data} refresh={refresh}/>}
  {tab==='appointments'&&<AppointmentsManager me={me} data={data} refresh={refresh}/>}
- {tab==='people'&&<PeopleManager me={me} data={data} refresh={refresh}/>}
+ {tab==='people'&&<PeopleManager me={me} data={data} refresh={refresh}/>} {tab==='layout'&&roleRank[me.role]>=1&&<LayoutManager data={data} refresh={refresh}/>}
  {tab==='teams'&&isFullAdmin(me)&&<TeamManager data={data} refresh={refresh}/>}
  {tab==='roles'&&isFullAdmin(me)&&<RoleManager data={data} refresh={refresh}/>}
  {tab==='roles'&&!isFullAdmin(me)&&<div className="empty">เฉพาะหัวหน้าตุ้ยและอาจารย์ตุ้ยเท่านั้นที่กำหนดยศได้</div>}
@@ -363,16 +364,67 @@ function Manage({me,data,refresh,defaultTab}){
 
 function AppointmentsManager({me,data,refresh}){const [open,setOpen]=useState(false),[edit,setEdit]=useState(null),[range,setRange]=useState({from:todayISO(),to:todayISO()});const rows=data.appointments.filter(x=>inDateRange(x,range.from)||inDateRange(x,range.to)||(x.date<=range.from&&itemEndDate(x)>=range.to)).sort((a,b)=>a.date.localeCompare(b.date)||String(a.start_time||'').localeCompare(String(b.start_time||'')));return <div><div className="section-top"><div><h3>นัดหมาย</h3><p>เพิ่ม แก้ไข และลบรายการนัดหมาย</p></div><button className="primary" onClick={()=>{setEdit(null);setOpen(true)}}><Plus/>เพิ่มนัดหมาย</button></div><DateRangeBar from={range.from} to={range.to} onChange={(from,to)=>setRange({from,to})}/>{rows.map(x=><div className="card event-row urgency-card" key={x.id}><div><b>{x.title}</b><small>{x.type} · {rangeText(x)} · {x.start_time.slice(0,5)}–{x.end_time.slice(0,5)}</small><p>{x.notes||''}</p></div><div className="actions"><button onClick={()=>{setEdit(x);setOpen(true)}}><Edit3/></button><button onClick={async()=>{if(confirm('ลบนัดหมายนี้?')){await supabase.from('appointment_members').delete().eq('appointment_id',x.id);await supabase.from('appointments').delete().eq('id',x.id);refresh()}}}><Trash2/></button></div></div>)}{!rows.length&&<div className="empty">ช่วงวันที่นี้ยังไม่มีนัดหมาย</div>}{open&&<AppointmentModal me={me} data={data} item={edit} date={range.from} close={()=>setOpen(false)} refresh={refresh}/>}</div>}
 
+
+const DEFAULT_MEMBER_LAYOUT=[
+ {key:'display_name',label:'ชื่อที่แสดง',visible:true,order:0,area:'main',builtin:true},
+ {key:'full_name',label:'ชื่อ-สกุล',visible:true,order:1,area:'main',builtin:true},
+ {key:'bio',label:'แนะนำตัว',visible:true,order:2,area:'main',builtin:true},
+ {key:'position',label:'ตำแหน่ง',visible:true,order:3,area:'right',builtin:true},
+ {key:'team',label:'ฝ่าย',visible:true,order:4,area:'right',builtin:true},
+ {key:'class_name',label:'ชั้น',visible:true,order:5,area:'right',builtin:true},
+ {key:'nickname',label:'ชื่อเล่น',visible:true,order:6,area:'right',builtin:true},
+ {key:'birthday',label:'วันเกิด',visible:true,order:7,area:'right',builtin:true}
+];
+const DEFAULT_CHECKIN_LAYOUT=[
+ {key:'full_name',label:'ชื่อ-สกุล',visible:true,order:0,area:'main',builtin:true},
+ {key:'class_name',label:'ชั้น',visible:true,order:1,area:'main',builtin:true},
+ {key:'nickname',label:'ชื่อเล่น',visible:true,order:2,area:'main',builtin:true},
+ {key:'team',label:'ฝ่าย',visible:true,order:3,area:'main',builtin:true},
+ {key:'avatar_url',label:'รูปภาพ',visible:true,order:4,area:'main',builtin:true},
+ {key:'linked_user_id',label:'บัญชีเว็บไซต์',visible:false,order:5,area:'main',builtin:true}
+];
+const layoutDefaults={members:DEFAULT_MEMBER_LAYOUT,checkin:DEFAULT_CHECKIN_LAYOUT};
+const getLayout=(data,target)=>{
+ const row=(data.layoutConfigs||[]).find(x=>x.target===target);
+ const base=(row?.config?.fields?.length?row.config.fields:layoutDefaults[target]).map((x,i)=>({...x,order:x.order??i}));
+ return base.sort((a,b)=>a.order-b.order);
+};
+const valueForLayout=(field,u,c,data)=>{
+ const key=field.key;
+ const custom=(key.startsWith('custom:')?((u?.custom_fields||c?.custom_fields||{})[key.slice(7)]):undefined);
+ if(custom!==undefined)return custom;
+ if(key==='display_name')return u?.display_name||'ยังไม่มีชื่อ';
+ if(key==='full_name')return c?.full_name||'ยังไม่เชื่อม';
+ if(key==='bio')return u?.bio||'';
+ if(key==='position')return u?.department_position||roleLabel(u,data);
+ if(key==='team')return c?.team||u?.team||'ยังไม่ระบุ';
+ if(key==='class_name')return c?.class_name||'ยังไม่เชื่อม';
+ if(key==='nickname')return c?.nickname||'—';
+ if(key==='birthday')return u?.birthday?new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'long',year:'numeric'}).format(new Date(u.birthday+'T00:00:00')):'ยังไม่ได้ระบุ';
+ if(key==='avatar_url')return c?.avatar_url||u?.avatar_url||'';
+ if(key==='linked_user_id')return c?.linked_user_id?'เชื่อมแล้ว':'ยังไม่เชื่อม';
+ return '';
+};
+function LayoutFields({layout,u,c,data,compact=false}){
+ return <>{layout.filter(f=>f.visible&&f.key!=='avatar_url').sort((a,b)=>a.order-b.order).map(f=>{const v=valueForLayout(f,u,c,data);if(v===''||v==null)return null;return <div className={`layout-field ${compact?'compact':''}`} key={f.key}><span>{f.label}</span><b>{String(v)}</b></div>})}</>;
+}
+
 function Members({me,data}){
  const [dates,setDates]=useState({}),[filter,setFilter]=useState('all');
  const teams=useMemo(()=>data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS,[data.teamOptions]);
  const checkinByUser=useMemo(()=>{const m=new Map();(data.checkins||[]).forEach(x=>{if(x.linked_user_id)m.set(x.linked_user_id,x)});return m},[data.checkins]);
+ const layout=getLayout(data,'members');
  const positionRank=u=>{const p=u.department_position;if(p==='ประธานเชียร์')return 0;if(p==='รองประธานเชียร์')return 1;if(p?.startsWith('ประธานฝ่าย'))return 2;if(p?.startsWith('รองประธานฝ่าย')||p==='รองประธานลีดเดอร์')return 3;const idx=teams.indexOf(u.team);if(idx>=0)return 4+idx;if(u.role==='teacher')return 9;if(p==='ศิษย์เก่า')return 10;return 99};
  const displayName=u=>u.display_name||'ยังไม่มีชื่อ';
- const positionText=u=>u.department_position==='ศิษย์เก่า'&&u.alumni_generation?`ศิษย์เก่า · รุ่น ${u.alumni_generation}`:u.department_position||roleLabel(u,data);
- const rows=useMemo(()=>data.users.filter(u=>filter==='all'||u.team===filter).sort((a,b)=>positionRank(a)-positionRank(b)||displayName(a).localeCompare(displayName(b),'th')),[data.users,filter,teams,checkinByUser]);
- const birthdayText=b=>b?new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'long',year:'numeric'}).format(new Date(b+'T00:00:00')):'ยังไม่ได้ระบุ';
- return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);return <div className="member-card" key={u.id}><div className="member-head"><Avatar user={{...u,display_name:displayName(u),avatar_url:c?.avatar_url||u.avatar_url}}/><div><h3>{displayName(u)}</h3><small className="member-real-name-line">{c?.full_name||'ยังไม่เชื่อม'}</small><small>{positionText(u)}{u.team?` · ${u.team}`:''}</small></div></div>{u.bio&&<p className="bio member-bio-top">{u.bio}</p>}<div className="member-info-grid"><div><span>ชั้น</span><b>{c?.class_name||'ยังไม่เชื่อม'}</b></div><div><span>ชื่อเล่น</span><b>{c?.nickname||'—'}</b></div><div><span>วันเกิด</span><b>{birthdayText(u.birthday)}</b></div></div><div className="member-date"><label>วันที่<input type="date" value={d} onChange={e=>setDates(v=>({...v,[u.id]:e.target.value}))}/></label></div><div className="line"><span>●</span><b>{slots.length?slots.map(x=>`${x.start_time.slice(0,5)}–${x.end_time.slice(0,5)}`).join(' · '):'ยังไม่ได้ลงเวลาว่าง'}</b></div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
+ const rows=useMemo(()=>data.users.filter(u=>filter==='all'||u.team===filter).sort((a,b)=>positionRank(a)-positionRank(b)||displayName(a).localeCompare(displayName(b),'th')),[data.users,filter,teams,data.layoutConfigs]);
+ return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div>
+  <div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div>
+  <div className="member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);return <div className="member-card compact-member" key={u.id}>
+   <div className="member-head"><Avatar user={{...u,display_name:displayName(u),avatar_url:c?.avatar_url||u.avatar_url,avatar_scale:c?.avatar_scale??u.avatar_scale,avatar_x:c?.avatar_x??u.avatar_x,avatar_y:c?.avatar_y??u.avatar_y}}/><div className="member-main-name"><h3>{displayName(u)}</h3>{layout.find(f=>f.key==='full_name'&&f.visible)&&<small className="member-real-name-line">{c?.full_name||'ยังไม่เชื่อม'}</small>}{u.bio&&layout.find(f=>f.key==='bio'&&f.visible)&&<small className="member-intro">{u.bio}</small>}</div></div>
+   <div className="member-layout-fields"><LayoutFields layout={layout.filter(f=>!['display_name','full_name','bio'].includes(f.key))} u={u} c={c} data={data} compact/></div>
+   <div className="member-date"><label>วันที่<input type="date" value={d} onChange={e=>setDates(v=>({...v,[u.id]:e.target.value}))}/></label></div>
+   <div className="line"><span>●</span><b>{slots.length?slots.map(x=>`${x.start_time.slice(0,5)}–${x.end_time.slice(0,5)}`).join(' · '):'ยังไม่ได้ลงเวลาว่าง'}</b></div>
+  </div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
 }
 
 function AttendanceManager({me,data,refresh}){
@@ -512,7 +564,7 @@ function CleaningManager({me,data,refresh}){
 
 function AvatarCropModal({src,scale,x,y,setScale,setX,setY,onCancel,onConfirm}){
  return <div className="modal-bg crop-modal-bg" onMouseDown={e=>e.target===e.currentTarget&&onCancel()}><div className="modal crop-modal">
-  <div className="modal-head"><div><h2>ปรับรูปโปรไฟล์</h2><p className="muted">เลื่อนตำแหน่งและซูมให้พอดีก่อนบันทึก</p></div><button onClick={onCancel}><X/></button></div>
+  <div className="modal-head"><div><h2>ปรับรูปโปรไฟล์</h2><p className="muted">รูปต้นฉบับจะไม่ถูกตัด เลื่อนตำแหน่งและซูมได้ตามต้องการ</p></div><button onClick={onCancel}><X/></button></div>
   <div className="crop-preview"><div className="crop-window"><img src={src} alt="พรีวิว" style={{transform:`translate(${x}%,${y}%) scale(${scale})`}}/></div></div>
   <div className="crop-controls">
    <div className="crop-direction"><button className="secondary" type="button" onClick={()=>setY(v=>v-5)}>↑</button><div><button className="secondary" type="button" onClick={()=>setX(v=>v-5)}>←</button><button className="secondary" type="button" onClick={()=>{setX(0);setY(0)}}>รีเซ็ต</button><button className="secondary" type="button" onClick={()=>setX(v=>v+5)}>→</button></div><button className="secondary" type="button" onClick={()=>setY(v=>v+5)}>↓</button></div>
@@ -524,12 +576,12 @@ function AvatarCropModal({src,scale,x,y,setScale,setX,setY,onCancel,onConfirm}){
 
 function PeopleManager({me,data,refresh}){
  const teams=data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS;
- const [editing,setEditing]=useState(null),[form,setForm]=useState(null),[file,setFile]=useState(null),[preview,setPreview]=useState(''),[cropOpen,setCropOpen]=useState(false),[cropScale,setCropScale]=useState(1),[cropX,setCropX]=useState(0),[cropY,setCropY]=useState(0),[teamBusy,setTeamBusy]=useState(''),[order,setOrder]=useState([]),[orderDirty,setOrderDirty]=useState(false),[savingOrder,setSavingOrder]=useState(false);
+ const [editing,setEditing]=useState(null),[form,setForm]=useState(null),[file,setFile]=useState(null),[preview,setPreview]=useState(''),[cropOpen,setCropOpen]=useState(false),[cropScale,setCropScale]=useState(1),[cropX,setCropX]=useState(0),[cropY,setCropY]=useState(0),[teamBusy,setTeamBusy]=useState(''),[order,setOrder]=useState([]),[orderDirty,setOrderDirty]=useState(false),[savingOrder,setSavingOrder]=useState(false),[orderEdit,setOrderEdit]=useState(false),[dragIndex,setDragIndex]=useState(null);
  const canAssignTeam=roleRank[me.role]>=1;
  const canManageCheckins=roleRank[me.role]>=1;
- useEffect(()=>{setOrder([...data.checkins].sort((a,b)=>(a.sort_no||0)-(b.sort_no||0)));setOrderDirty(false)},[data.checkins]);
- function open(u){setEditing(u);setFile(null);setPreview(u.avatar_url||'');setCropScale(u.avatar_scale||1);setCropX(u.avatar_x||0);setCropY(u.avatar_y||0);setForm({...u,show_in_checkin:u.show_in_checkin!==false});}
- function openNew(){setEditing('new');setFile(null);setPreview('');setCropScale(1);setCropX(0);setCropY(0);setForm({full_name:'',class_name:'',nickname:'',team:teams[0]||'',linked_user_id:null,avatar_url:null,avatar_scale:1,avatar_x:0,avatar_y:0,show_in_checkin:true});}
+ useEffect(()=>{if(!orderEdit){setOrder([...data.checkins].sort((a,b)=>(a.sort_no||0)-(b.sort_no||0)));setOrderDirty(false)}},[data.checkins,orderEdit]);
+ function open(u){setEditing(u);setFile(null);setPreview(u.avatar_url||'');setCropScale(u.avatar_scale||1);setCropX(u.avatar_x||0);setCropY(u.avatar_y||0);setForm({...u,show_in_checkin:u.show_in_checkin!==false,custom_fields:u.custom_fields||{}});}
+ function openNew(){setEditing('new');setFile(null);setPreview('');setCropScale(1);setCropX(0);setCropY(0);setForm({full_name:'',class_name:'',nickname:'',team:teams[0]||'',linked_user_id:null,avatar_url:null,avatar_scale:1,avatar_x:0,avatar_y:0,show_in_checkin:true,custom_fields:{}});}
  async function pickFile(f){if(!f||!f.type?.startsWith('image/'))return;setFile(f);const url=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(f)});setPreview(url);setCropScale(1);setCropX(0);setCropY(0);setCropOpen(true)}
  function cancelCrop(){setCropOpen(false);setFile(null);setPreview(form?.avatar_url||'');setCropScale(form?.avatar_scale||1);setCropX(form?.avatar_x||0);setCropY(form?.avatar_y||0)}
  function confirmCrop(){setCropOpen(false)}
@@ -539,28 +591,60 @@ function PeopleManager({me,data,refresh}){
   if(!form?.full_name?.trim()||!form?.class_name?.trim()||!form?.nickname?.trim())return alert('กรุณากรอกชื่อ-สกุล ชั้น และชื่อเล่น');
   try{let avatar=form.avatar_url||null;
    if(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase();const path=`member-${editing==='new'?'new':form.id}-${Date.now()}.${ext}`;const up=await supabase.storage.from('checkin-avatars').upload(path,file,{upsert:true,contentType:file.type});if(up.error)throw up.error;avatar=supabase.storage.from('checkin-avatars').getPublicUrl(path).data.publicUrl}
-   const payload={full_name:form.full_name.trim(),class_name:form.class_name.trim(),nickname:form.nickname.trim(),team:form.team||teams[0]||'โค้ด',linked_user_id:form.linked_user_id||null,avatar_url:avatar||null,avatar_scale:cropScale,avatar_x:cropX,avatar_y:cropY,show_in_checkin:form.show_in_checkin!==false};
+   const payload={full_name:form.full_name.trim(),class_name:form.class_name.trim(),nickname:form.nickname.trim(),team:form.team||teams[0]||'โค้ด',linked_user_id:form.linked_user_id||null,avatar_url:avatar||null,avatar_scale:cropScale,avatar_x:cropX,avatar_y:cropY,show_in_checkin:form.show_in_checkin!==false,custom_fields:form.custom_fields||{}};
    const r=editing==='new'?await supabase.from('checkin_members').insert({...payload,sort_no:(Math.max(0,...data.checkins.map(x=>x.sort_no||0))+1)}):await supabase.from('checkin_members').update(payload).eq('id',form.id);if(r.error)throw r.error;setEditing(null);setForm(null);setFile(null);await refresh();
   }catch(e){alert(e.message||'บันทึกข้อมูลสมาชิกไม่สำเร็จ')}
  }
- function move(i,dir){setOrder(v=>{const a=[...v],j=i+dir;if(j<0||j>=a.length)return a;[a[i],a[j]]=[a[j],a[i]];return a});setOrderDirty(true)}
- async function saveOrder(){if(!order.length)return;setSavingOrder(true);try{const r=await supabase.rpc('reorder_checkin_members',{member_ids:order.map(x=>x.id)});if(r.error)throw r.error;setOrderDirty(false);await refresh()}catch(e){alert(e.message||'บันทึกลำดับไม่สำเร็จ')}finally{setSavingOrder(false)}}
+ function startDrag(i){if(!orderEdit||!canManageCheckins)return;setDragIndex(i)}
+ function dropAt(i){if(dragIndex===null||dragIndex===i)return;setOrder(v=>{const a=[...v],m=a.splice(dragIndex,1)[0];a.splice(i,0,m);return a});setDragIndex(null);setOrderDirty(true)}
+ async function saveOrder(){if(!order.length)return;setSavingOrder(true);try{const r=await supabase.rpc('reorder_checkin_members',{member_ids:order.map(x=>x.id)});if(r.error)throw r.error;setOrderDirty(false);setOrderEdit(false);await refresh()}catch(e){alert(e.message||'บันทึกลำดับไม่สำเร็จ')}finally{setSavingOrder(false)}}
+ function cancelOrder(){setOrder([...data.checkins].sort((a,b)=>(a.sort_no||0)-(b.sort_no||0)));setOrderDirty(false);setOrderEdit(false);setDragIndex(null)}
  return <div>
   {canAssignTeam&&<div className="manage-box"><div className="section-top"><div><h3>จัดฝ่ายให้สมาชิก</h3><p>รองใหญ่ตุ้ย หัวหน้าตุ้ย และอาจารย์ตุ้ย สามารถกำหนดหรือเปลี่ยนฝ่ายให้สมาชิกได้</p></div></div><div className="role-list">{data.users.map(u=><div className="role-user" key={u.id}><div className="role-user-info"><Avatar user={u}/><div><b>{u.display_name}</b><small>{roleLabel(u,data)}</small></div></div><select className="role-select" disabled={teamBusy===u.id} value={u.team||''} onChange={e=>changeTeam(u,e.target.value)}><option value="">ยังไม่เลือกฝ่าย</option>{teams.map(t=><option key={t} value={t}>{t}</option>)}</select></div>)}</div></div>}
-  <div className="manage-box"><div className="section-top"><div><h3>ข้อมูลคนเช็คชื่อ</h3><p>แก้ไข / เพิ่มสมาชิก ควบคุมการแสดงในเช็คชื่อ และจัดลำดับรายชื่อเช็คชื่อ</p></div>{canManageCheckins&&<button className="primary" onClick={openNew}><UserPlus/>เพิ่มสมาชิก</button>}</div>
-   <div className="checkin-order-list">{order.map((m,i)=><div className="checkin-master-row" key={m.id}><span className="order-no">{i+1}</span><Avatar user={m}/><div className="checkin-master-info"><b>{m.full_name}</b><small>{m.class_name} · {m.nickname} · {m.team}</small></div><button className={`visibility-badge ${m.show_in_checkin===false?'off':'on'}`} disabled={!canManageCheckins} onClick={()=>toggleVisibility(m)} title="กดเพื่อเปลี่ยนการแสดงในเช็คชื่อ">{m.show_in_checkin===false?'ไม่แสดงเช็คชื่อ':'แสดงเช็คชื่อ'}</button><div className="order-actions"><button disabled={!canManageCheckins||i===0} onClick={()=>move(i,-1)} title="ขึ้น"><ArrowUp size={15}/></button><button disabled={!canManageCheckins||i===order.length-1} onClick={()=>move(i,1)} title="ลง"><ArrowDown size={15}/></button><button disabled={!canManageCheckins} onClick={()=>open(m)} title="แก้ไข"><Edit3 size={15}/></button></div></div>)}{!order.length&&<div className="empty">ยังไม่มีข้อมูลคนเช็คชื่อ</div>}</div>
-   {canManageCheckins&&<div className="order-footer"><small className="muted">ลำดับนี้ใช้กับหน้าเช็คชื่อโดยตรง</small>{orderDirty&&<button className="primary" disabled={savingOrder} onClick={saveOrder}><Save/>บันทึกลำดับ</button>}</div>}
+  <div className="manage-box"><div className="section-top"><div><h3>ข้อมูลคนเช็คชื่อ</h3><p>แก้ไข / เพิ่มสมาชิก ควบคุมการแสดงในเช็คชื่อ และจัดลำดับรายชื่อเช็คชื่อ</p></div>{canManageCheckins&&<div className="actions"><button className="secondary" onClick={()=>setOrderEdit(v=>!v)}>{orderEdit?'ปิดการแก้ไขลำดับ':'↕ แก้ไขลำดับ'}</button><button className="primary" onClick={openNew}><UserPlus/>เพิ่มสมาชิก</button></div>}</div>
+   <div className={`checkin-order-list ${orderEdit?'is-reordering':''}`}>{order.map((m,i)=><div className={`checkin-master-row ${orderEdit?'draggable-row':''} ${dragIndex===i?'dragging':''}`} key={m.id} draggable={orderEdit&&canManageCheckins} onDragStart={()=>startDrag(i)} onDragOver={e=>{if(orderEdit){e.preventDefault();e.dataTransfer.dropEffect='move'}}} onDrop={()=>dropAt(i)} onDragEnd={()=>setDragIndex(null)}>
+    <span className="order-no">{orderEdit?<GripVertical size={16}/>:i+1}</span><Avatar user={m}/><div className="checkin-master-info"><b>{m.full_name}</b><small>{m.class_name} · {m.nickname} · {m.team}</small></div>
+    <button className={`visibility-badge ${m.show_in_checkin===false?'off':'on'}`} disabled={!canManageCheckins} onClick={()=>toggleVisibility(m)} title="กดเพื่อเปลี่ยนการแสดงในเช็คชื่อ">{m.show_in_checkin===false?'ไม่แสดงเช็คชื่อ':'แสดงเช็คชื่อ'}</button>
+    {!orderEdit&&<div className="order-actions"><button disabled={!canManageCheckins} onClick={()=>open(m)} title="แก้ไข"><Edit3 size={15}/></button></div>}
+    {orderEdit&&<div className="order-actions"><button disabled={!canManageCheckins} onClick={()=>open(m)} title="แก้ไขข้อมูล"><Edit3 size={15}/></button></div>}
+   </div>)}{!order.length&&<div className="empty">ยังไม่มีข้อมูลคนเช็คชื่อ</div>}</div>
+   {canManageCheckins&&<div className="order-footer"><small className="muted">{orderEdit?'ลากสมาชิกขึ้น–ลงเพื่อเปลี่ยนลำดับ':'ลำดับนี้ใช้กับหน้าเช็คชื่อโดยตรง'}</small>{orderEdit&&<div className="actions"><button className="secondary" onClick={cancelOrder}>ยกเลิก</button><button className="primary" disabled={!orderDirty||savingOrder} onClick={saveOrder}><Save/>บันทึกลำดับ</button></div>}</div>}
   </div>
   {editing&&<Modal title={editing==='new'?'เพิ่มสมาชิกในฐานข้อมูลเช็คชื่อ':'แก้ไขข้อมูลสมาชิกเช็คชื่อ'} close={()=>{setEditing(null);setForm(null);setFile(null)}}>
    <label>ชื่อ-สกุล<input value={form.full_name} onChange={e=>setForm({...form,full_name:e.target.value})}/></label><label>ชั้น<input value={form.class_name} onChange={e=>setForm({...form,class_name:e.target.value})}/></label><label>ชื่อเล่น<input value={form.nickname} onChange={e=>setForm({...form,nickname:e.target.value})}/></label><label>ฝ่าย<select value={form.team||''} onChange={e=>setForm({...form,team:e.target.value})}>{teams.map(x=><option key={x}>{x}</option>)}</select></label>
-   <div className="member-photo-editor"><Avatar user={{...form,avatar_url:preview,avatar_scale:file?cropScale:form.avatar_scale,avatar_x:file?cropX:form.avatar_x,avatar_y:file?cropY:form.avatar_y}} className="profile-avatar"/><div><label className="upload-btn avatar-upload">เปลี่ยนรูป<input type="file" accept="image/*" onChange={e=>{pickFile(e.target.files?.[0]);e.target.value=''}}/></label><small className="muted">ใช้ระบบครอปและซูมเดียวกับหน้า Settings</small></div></div>
+   <div className="member-photo-editor"><Avatar user={{...form,avatar_url:preview,avatar_scale:file?cropScale:form.avatar_scale,avatar_x:file?cropX:form.avatar_x,avatar_y:file?cropY:form.avatar_y}} className="profile-avatar"/><div><label className="upload-btn avatar-upload">เปลี่ยนรูป<input type="file" accept="image/*" onChange={e=>{pickFile(e.target.files?.[0]);e.target.value=''}}/></label><small className="muted">เลือกรูปแล้วปรับตำแหน่ง/ซูมได้ โดยไม่ตัดรูปต้นฉบับ</small></div></div>
    <label>หรือ URL รูปภาพ<input value={form.avatar_url||''} onChange={e=>{setForm({...form,avatar_url:e.target.value});setPreview(e.target.value)}} placeholder="https://..."/></label>
    <label>เชื่อมกับบัญชีในเว็บ<select value={form.linked_user_id||''} onChange={e=>setForm({...form,linked_user_id:e.target.value||null})}><option value="">ยังไม่เชื่อม</option>{data.users.map(u=><option key={u.id} value={u.id}>{u.display_name} · {u.email}</option>)}</select></label>
-   <label className="switch-line"><input type="checkbox" checked={form.show_in_checkin!==false} onChange={e=>setForm({...form,show_in_checkin:e.target.checked})}/>แสดงสมาชิกคนนี้ในหน้าเช็คชื่อ</label>
+   <label className="switch-line"><input type="checkbox" checked={form.show_in_checkin!==false} onChange={e=>setForm({...form,show_in_checkin:e.target.checked})}/>แสดงสมาชิกคนนี้ในหน้าเช็คชื่อ</label><div className="custom-data-editor">{getLayout(data,'checkin').filter(f=>f.key.startsWith('custom:')).map(f=><label key={f.key}>{f.label}<input value={form.custom_fields?.[f.key.slice(7)]||''} onChange={e=>setForm({...form,custom_fields:{...(form.custom_fields||{}),[f.key.slice(7)]:e.target.value}})}/></label>)}</div>
    <button className="primary wide" onClick={save}><Save/>บันทึก</button>
   </Modal>}
   {cropOpen&&<AvatarCropModal src={preview} scale={cropScale} x={cropX} y={cropY} setScale={setCropScale} setX={setCropX} setY={setCropY} onCancel={cancelCrop} onConfirm={confirmCrop}/>} 
  </div>
+}
+
+
+function LayoutManager({data,refresh}){
+ const [target,setTarget]=useState('members'),[draft,setDraft]=useState([]),[busy,setBusy]=useState(false),[newLabel,setNewLabel]=useState('');
+ const source=getLayout(data,target);
+ useEffect(()=>setDraft(source.map(x=>({...x}))),[target,data.layoutConfigs]);
+ const move=(i,dir)=>setDraft(v=>{const a=[...v],j=i+dir;if(j<0||j>=a.length)return a;[a[i],a[j]]=[a[j],a[i]];return a.map((x,k)=>({...x,order:k}))});
+ const toggle=i=>setDraft(v=>v.map((x,k)=>k===i?{...x,visible:!x.visible}:x));
+ const editLabel=(i,label)=>setDraft(v=>v.map((x,k)=>k===i?{...x,label}:x));
+ const add=()=>{const label=newLabel.trim();if(!label)return;const key=`custom:${Date.now()}`;setDraft(v=>[...v,{key,label,visible:true,order:v.length,area:'right',builtin:false}]);setNewLabel('')};
+ const remove=i=>setDraft(v=>v.filter((_,k)=>k!==i).map((x,k)=>({...x,order:k})));
+ async function save(){setBusy(true);try{const config={fields:draft.map((x,i)=>({...x,order:i}))};const r=await supabase.from('layout_configs').upsert({target,config,updated_at:new Date().toISOString()},{onConflict:'target'});if(r.error)throw r.error;await refresh();alert('บันทึก Layout แล้ว')}catch(e){alert(e.message||'บันทึก Layout ไม่สำเร็จ')}finally{setBusy(false)}}
+ return <section><div className="section-top"><div><h3>การแสดงผล</h3><p>ปรับ Layout ของหน้าสมาตุ้ยทั้งหมดและข้อมูลสมาชิกเช็คชื่อ โดยไม่ลบข้อมูลจริง</p></div></div>
+  <div className="seg-tabs"><button className={target==='members'?'active':''} onClick={()=>setTarget('members')}>สมาตุ้ยทั้งหมด</button><button className={target==='checkin'?'active':''} onClick={()=>setTarget('checkin')}>จัดการสมาชิก / เช็คชื่อ</button></div>
+  <div className="manage-box layout-builder"><div className="layout-builder-head"><div><h3>{target==='members'?'Layout สมาตุ้ยทั้งหมด':'Layout ข้อมูลสมาชิกเช็คชื่อ'}</h3><p className="muted">เปิด/ปิดข้อมูล แก้ชื่อ และเปลี่ยนลำดับการแสดงได้</p></div></div>
+   <div className="layout-add"><input value={newLabel} onChange={e=>setNewLabel(e.target.value)} placeholder="เพิ่มข้อมูลใหม่ เช่น เลขประจำตัว"/><button className="secondary" onClick={add}><Plus/>เพิ่มฟิลด์</button></div>
+   <div className="layout-field-list">{draft.map((f,i)=><div className={`layout-builder-row ${f.visible?'':'is-hidden'}`} key={f.key}>
+    <div className="layout-order">{i+1}</div><div className="layout-field-name"><input value={f.label} onChange={e=>editLabel(i,e.target.value)} disabled={f.builtin&&false}/><small>{f.builtin?'ข้อมูลระบบ':'ฟิลด์ที่เพิ่มเอง'}</small></div>
+    <button className="visibility-badge" onClick={()=>toggle(i)}>{f.visible?'แสดง':'ไม่แสดง'}</button>
+    <div className="order-actions"><button disabled={i===0} onClick={()=>move(i,-1)}>↑</button><button disabled={i===draft.length-1} onClick={()=>move(i,1)}>↓</button>{!f.builtin&&<button onClick={()=>remove(i)} title="ลบ Layout">×</button>}</div>
+   </div>)}</div>
+   <div className="layout-save"><span className="muted">การลบฟิลด์จาก Layout จะซ่อนการแสดงผล แต่ไม่ลบข้อมูลสมาชิก</span><button className="primary" disabled={busy} onClick={save}><Save/>บันทึก Layout</button></div>
+  </div>
+ </section>
 }
 
 function TeamManager({data,refresh}){
@@ -600,7 +684,7 @@ function RoleManager({data,refresh}){
  </div>
 }
 function SettingsPage({me,data,refresh,setProfile}){
- const [name,setName]=useState(me.display_name||''),[bio,setBio]=useState(me.bio||''),[team,setTeam]=useState(me.team||''),[birthday,setBirthday]=useState(me.birthday||''),[file,setFile]=useState(null),[preview,setPreview]=useState(me.avatar_url||''),[cropOpen,setCropOpen]=useState(false),[cropScale,setCropScale]=useState(me.avatar_scale||1),[cropX,setCropX]=useState(me.avatar_x||0),[cropY,setCropY]=useState(me.avatar_y||0),[msg,setMsg]=useState(''),[err,setErr]=useState('');
+ const [name,setName]=useState(me.display_name||''),[bio,setBio]=useState(me.bio||''),[team,setTeam]=useState(me.team||''),[birthday,setBirthday]=useState(me.birthday||''),[file,setFile]=useState(null),[preview,setPreview]=useState(me.avatar_url||''),[cropOpen,setCropOpen]=useState(false),[cropScale,setCropScale]=useState(me.avatar_scale||1),[cropX,setCropX]=useState(me.avatar_x||0),[cropY,setCropY]=useState(me.avatar_y||0),[msg,setMsg]=useState(''),[err,setErr]=useState(''),[customFields,setCustomFields]=useState(me.custom_fields||{});
  async function pickFile(f){
   if(!f || !f.type?.startsWith('image/')) return;
   setFile(f);
@@ -610,8 +694,8 @@ function SettingsPage({me,data,refresh,setProfile}){
 }
  function cancelCrop(){setCropOpen(false);setFile(null);setPreview(me.avatar_url||'');setCropScale(me.avatar_scale||1);setCropX(me.avatar_x||0);setCropY(me.avatar_y||0)}
  function confirmCrop(){setCropOpen(false)}
- async function save(){setErr('');setMsg('');try{let avatar=me.avatar_url;if(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase();const path=`${me.id}/avatar-${Date.now()}.${ext}`;const u=await supabase.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});if(u.error)throw u.error;avatar=supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl}const r=await supabase.from('profiles').update({display_name:name.trim(),bio:bio.trim()||null,team:team||null,birthday:birthday||null,avatar_url:avatar||null,avatar_scale:cropScale,avatar_x:cropX,avatar_y:cropY}).eq('id',me.id).select().single();if(r.error)throw r.error;setProfile(r.data);await refresh();setFile(null);setMsg('บันทึกเรียบร้อย')}catch(e){setErr(e.message)}}
- return <section><div className="section-top"><div><h2>⚙️ ตั้งค่า</h2><p>แก้ข้อมูลส่วนตัว ฝ่าย และแนะนำตัว</p></div></div><div className="card settings-form-card"><div className="settings-avatar-row"><div className="settings-avatar-preview"><Avatar user={{...me,avatar_url:preview,avatar_scale:file?cropScale:me.avatar_scale,avatar_x:file?cropX:me.avatar_x,avatar_y:file?cropY:me.avatar_y}} className="profile-avatar"/><span>{file?'พรีวิวรูปใหม่':'รูปโปรไฟล์ปัจจุบัน'}</span></div><div className="settings-avatar-actions"><label className="upload-btn">เปลี่ยนรูป<input type="file" accept="image/*" onChange={e=>{pickFile(e.target.files?.[0]);e.target.value=''}}/></label><small className="muted">เลือกรูปแล้วพรีวิวจะขึ้นทันที และจะเปิดหน้าปรับตำแหน่ง/ซูม</small></div></div><div className="settings-fields"><label>ชื่อที่แสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="กรอกชื่อที่ต้องการให้แสดง"/></label><label>ฝ่าย{roleRank[me.role]>=1?<select value={team} onChange={e=>setTeam(e.target.value)}><option value="">ยังไม่เลือก</option>{(data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS).map(x=><option key={x}>{x}</option>)}</select>:<div className="readonly-field">{team||'ยังไม่เลือกฝ่าย'}</div>}</label><label>แนะนำตัว<textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="เขียนแนะนำตัวสั้นๆ"/></label><label>วันเกิด<input type="date" value={birthday} onChange={e=>setBirthday(e.target.value)}/></label><div className="settings-role"><span>ยศ</span><b>{roleLabel(me,data)}</b></div>{me.department_position&&<div className="settings-role"><span>ตำแหน่งฝ่าย</span><b>{me.department_position}</b></div>}{err&&<div className="error">{err}</div>}{msg&&<div className="notice">{msg}</div>}<button className="primary settings-save" onClick={save}><Save/>บันทึกการตั้งค่า</button></div></div>{cropOpen&&<AvatarCropModal src={preview} scale={cropScale} x={cropX} y={cropY} setScale={setCropScale} setX={setCropX} setY={setCropY} onCancel={cancelCrop} onConfirm={confirmCrop}/>}</section>}
+ async function save(){setErr('');setMsg('');try{let avatar=me.avatar_url;if(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase();const path=`${me.id}/avatar-${Date.now()}.${ext}`;const u=await supabase.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});if(u.error)throw u.error;avatar=supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl}const r=await supabase.from('profiles').update({display_name:name.trim(),bio:bio.trim()||null,team:team||null,birthday:birthday||null,avatar_url:avatar||null,avatar_scale:cropScale,avatar_x:cropX,avatar_y:cropY,custom_fields:customFields}).eq('id',me.id).select().single();if(r.error)throw r.error;setProfile(r.data);await refresh();setFile(null);setMsg('บันทึกเรียบร้อย')}catch(e){setErr(e.message)}}
+ return <section><div className="section-top"><div><h2>⚙️ ตั้งค่า</h2><p>แก้ข้อมูลส่วนตัว ฝ่าย และแนะนำตัว</p></div></div><div className="card settings-form-card"><div className="settings-avatar-row"><div className="settings-avatar-preview"><Avatar user={{...me,avatar_url:preview,avatar_scale:file?cropScale:me.avatar_scale,avatar_x:file?cropX:me.avatar_x,avatar_y:file?cropY:me.avatar_y}} className="profile-avatar"/><span>{file?'พรีวิวรูปใหม่':'รูปโปรไฟล์ปัจจุบัน'}</span></div><div className="settings-avatar-actions"><label className="upload-btn">เปลี่ยนรูป<input type="file" accept="image/*" onChange={e=>{pickFile(e.target.files?.[0]);e.target.value=''}}/></label><small className="muted">เลือกรูปแล้วพรีวิวจะขึ้นทันที และจะเปิดหน้าปรับตำแหน่ง/ซูม</small></div></div><div className="settings-fields"><label>ชื่อที่แสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="กรอกชื่อที่ต้องการให้แสดง"/></label><label>ฝ่าย{roleRank[me.role]>=1?<select value={team} onChange={e=>setTeam(e.target.value)}><option value="">ยังไม่เลือก</option>{(data.teamOptions?.length?data.teamOptions.map(x=>x.name):DEFAULT_TEAMS).map(x=><option key={x}>{x}</option>)}</select>:<div className="readonly-field">{team||'ยังไม่เลือกฝ่าย'}</div>}</label><label>แนะนำตัว<textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="เขียนแนะนำตัวสั้นๆ"/></label><label>วันเกิด<input type="date" value={birthday} onChange={e=>setBirthday(e.target.value)}/></label>{getLayout(data,'members').filter(f=>f.key.startsWith('custom:')).map(f=><label key={f.key}>{f.label}<input value={customFields[f.key.slice(7)]||''} onChange={e=>setCustomFields(v=>({...v,[f.key.slice(7)]:e.target.value}))}/></label>)}<div className="settings-role"><span>ยศ</span><b>{roleLabel(me,data)}</b></div>{me.department_position&&<div className="settings-role"><span>ตำแหน่งฝ่าย</span><b>{me.department_position}</b></div>}{err&&<div className="error">{err}</div>}{msg&&<div className="notice">{msg}</div>}<button className="primary settings-save" onClick={save}><Save/>บันทึกการตั้งค่า</button></div></div>{cropOpen&&<AvatarCropModal src={preview} scale={cropScale} x={cropX} y={cropY} setScale={setCropScale} setX={setCropX} setY={setCropY} onCancel={cancelCrop} onConfirm={confirmCrop}/>}</section>}
 
 function Modal({title,close,children}){return <div className="modal-bg" onMouseDown={e=>e.target===e.currentTarget&&close()}><div className="modal"><div className="modal-head"><h2>{title}</h2><button onClick={close}><X/></button></div>{children}</div></div>}
 
