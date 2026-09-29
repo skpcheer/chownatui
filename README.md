@@ -92,3 +92,9 @@ Before deploying, run `supabase/migration-v10-birthday.sql` in Supabase SQL Edit
 
 ## V20 planning update
 Run `supabase/migration-v20-planning-range.sql` in Supabase SQL Editor before deploying V20. It adds end dates to plans/appointments and seeds the requested position titles.
+
+## V2.9.2 update
+- `supabase/migration-v29-2.sql` adds check-in master visibility, ordering, avatar crop fields, and work-manager permissions.
+- Run the migration after `migration-v29-1-event-colors.sql` in Supabase SQL Editor.
+- The check-in master order is the order used on the check-in page.
+- Head/teacher can assign roles; department presidents/vice-presidents can create/manage plans, appointments, attendance, and announcements.
