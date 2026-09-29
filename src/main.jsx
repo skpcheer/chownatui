@@ -375,12 +375,12 @@ function Members({me,data}){
  const rows=useMemo(()=>data.users.filter(u=>filter==='all'||u.team===filter).sort((a,b)=>positionRank(a)-positionRank(b)||displayName(a).localeCompare(displayName(b),'th')),[data.users,filter,teams]);
  const birthdayText=b=>b?new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'long',year:'numeric'}).format(new Date(b+'T00:00:00')):'ยังไม่ได้ระบุ';
  const defaultFields=[
-  {id:'identity',label:'ชื่อ / ตำแหน่ง',x:1,y:1,w:7,h:1,visible:true},
-  {id:'avatar',label:'รูปโปรไฟล์',x:9,y:1,w:3,h:3,visible:true},
-  {id:'bio',label:'แนะนำตัว',x:1,y:2,w:8,h:1,visible:true},
-  {id:'basic',label:'ชั้น · ชื่อเล่น · วันเกิด',x:1,y:3,w:11,h:1,visible:true},
-  {id:'date',label:'วันที่',x:1,y:4,w:5,h:1,visible:true},
-  {id:'availability',label:'เวลาว่าง',x:6,y:4,w:6,h:1,visible:true}
+  {id:'identity',label:'ชื่อ / ตำแหน่ง',x:4,y:1,w:6,h:1,visible:true},
+  {id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:3,visible:true},
+  {id:'bio',label:'แนะนำตัว',x:4,y:2,w:8,h:1,visible:true},
+  {id:'basic',label:'ชั้น · ชื่อเล่น · วันเกิด',x:4,y:3,w:8,h:1,visible:true},
+  {id:'date',label:'วันที่',x:1,y:4,w:4,h:1,visible:true},
+  {id:'availability',label:'เวลาว่าง',x:5,y:4,w:7,h:1,visible:true}
  ];
  const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)==='members');
  const fields=Array.isArray(saved?.config?.fields)&&saved.config.fields.length?saved.config.fields:defaultFields;
@@ -397,7 +397,7 @@ function Members({me,data}){
 }
 
 function LayoutManager({data,refresh}){
- const defaults={members:[{id:'identity',label:'ชื่อ / ตำแหน่ง',x:1,y:1,w:7,h:1,visible:true},{id:'avatar',label:'รูปโปรไฟล์',x:9,y:1,w:3,h:3,visible:true},{id:'bio',label:'แนะนำตัว',x:1,y:2,w:8,h:1,visible:true},{id:'basic',label:'ชั้น · ชื่อเล่น · วันเกิด',x:1,y:3,w:11,h:1,visible:true},{id:'date',label:'วันที่',x:1,y:4,w:5,h:1,visible:true},{id:'availability',label:'เวลาว่าง',x:6,y:4,w:6,h:1,visible:true}],checkin:[{id:'full_name',label:'ชื่อ-สกุล',x:1,y:1,w:5,h:1,visible:true},{id:'nickname',label:'ชื่อเล่น',x:6,y:1,w:3,h:1,visible:true},{id:'class_name',label:'ชั้น',x:9,y:1,w:2,h:1,visible:true},{id:'team',label:'ฝ่าย',x:11,y:1,w:2,h:1,visible:true},{id:'sort_no',label:'ลำดับ',x:1,y:2,w:2,h:1,visible:true},{id:'show_in_checkin',label:'แสดงในเช็คชื่อ',x:3,y:2,w:4,h:1,visible:true}]};
+ const defaults={members:[{id:'identity',label:'ชื่อ / ตำแหน่ง',x:4,y:1,w:6,h:1,visible:true},{id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:3,visible:true},{id:'bio',label:'แนะนำตัว',x:4,y:2,w:8,h:1,visible:true},{id:'basic',label:'ชั้น · ชื่อเล่น · วันเกิด',x:4,y:3,w:8,h:1,visible:true},{id:'date',label:'วันที่',x:1,y:4,w:4,h:1,visible:true},{id:'availability',label:'เวลาว่าง',x:5,y:4,w:7,h:1,visible:true}],checkin:[{id:'full_name',label:'ชื่อ-สกุล',x:1,y:1,w:5,h:1,visible:true},{id:'nickname',label:'ชื่อเล่น',x:6,y:1,w:3,h:1,visible:true},{id:'class_name',label:'ชั้น',x:9,y:1,w:2,h:1,visible:true},{id:'team',label:'ฝ่าย',x:11,y:1,w:2,h:1,visible:true},{id:'sort_no',label:'ลำดับ',x:1,y:2,w:2,h:1,visible:true},{id:'show_in_checkin',label:'แสดงในเช็คชื่อ',x:3,y:2,w:4,h:1,visible:true}]};
  const [kind,setKind]=useState('members'),[fields,setFields]=useState(defaults.members),[drag,setDrag]=useState(null),[msg,setMsg]=useState('');
  useEffect(()=>{const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)===kind);setFields(saved?.config?.fields?.length?saved.config.fields:defaults[kind])},[kind,data.layoutConfigs]);
  async function save(){const r=await supabase.from('layout_configs').upsert({target:kind,config:{fields},updated_at:new Date().toISOString()},{onConflict:'target'});if(r.error)alert(r.error.message);else{setMsg('บันทึกการแสดงผลแล้ว');await refresh();setTimeout(()=>setMsg(''),1800)}}
