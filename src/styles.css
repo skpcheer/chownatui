@@ -407,3 +407,15 @@ label>input,label>select,label>textarea{margin-top:8px}
 .layout-preview-identity strong{font-weight:700!important;line-height:1.05!important}
 .layout-preview-identity small{font-weight:400!important}
 @media(max-width:900px){.compact-member-grid{grid-template-columns:1fr!important;gap:10px!important}.compact-member-card{padding:9px 10px!important}}
+
+/* v2.9.2 layout scale controls */
+.layout-card-style-panel{border-color:#31506f!important;background:linear-gradient(180deg,#0d1828,#0b1421)!important}
+.layout-card-style-panel>b{font-size:11px!important;color:#e4effc!important}
+.layout-card-style-panel .range-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.layout-card-style-panel .range-row span{min-width:42px;text-align:right;font-size:9px;color:#b8cbe0}
+.layout-card-style-panel input[type=range]{width:100%;accent-color:#78b8ee}
+.layout-card-style-panel select{width:100%;height:30px;border:1px solid #263b56;border-radius:8px;background:#111d2e;color:#dbe7f5;padding:0 8px;font-size:10px}
+.layout-avatar-control{display:grid;gap:5px;padding-top:2px}
+.layout-avatar-control>b{font-size:9px;color:#8fa3bd;font-weight:500}
+.member-card-layout .member-layout-avatar .avatar{width:var(--member-avatar-size,64px)!important;height:var(--member-avatar-size,64px)!important}
+.layout-preview-avatar{width:var(--preview-avatar-size,38px)!important;height:var(--preview-avatar-size,38px)!important}

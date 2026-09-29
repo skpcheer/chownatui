@@ -384,6 +384,12 @@ function Members({me,data}){
  ];
  const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)==='members');
  const fields=Array.isArray(saved?.config?.fields)&&saved.config.fields.length?saved.config.fields:defaultFields;
+ const cardConfig={
+  cellSize:Math.max(18,Math.min(40,Number(saved?.config?.card?.cellSize)||24)),
+  avatarSize:Math.max(44,Math.min(100,Number(saved?.config?.card?.avatarSize)||64)),
+  cardWidth:Math.max(70,Math.min(100,Number(saved?.config?.card?.cardWidth)||100)),
+  columns:Math.max(1,Math.min(2,Number(saved?.config?.card?.columns)||2))
+ };
  const byId=Object.fromEntries(fields.map(f=>[f.id,f]));
  const renderField=(f,u,c,slots,d)=>{if(f.visible===false)return null;const style={gridColumn:String(Math.max(1,Math.min(12,f.x||1)))+' / span '+String(Math.max(1,Math.min(12-(f.x||1)+1,f.w||4))),gridRow:String(Math.max(1,f.y||1))+' / span '+String(Math.max(1,f.h||1)),fontSize:f.fontSize?`${f.fontSize}px`:undefined,fontWeight:f.fontWeight||undefined,textAlign:f.textAlign||undefined};
   if(f.id==='identity')return <div className="member-layout-block member-identity" style={style}><div><h3>{c?.nickname||'ยังไม่มีชื่อเล่น'}</h3><strong>{c?.full_name||'ยังไม่เชื่อม'}</strong><small>{positionText(u)}{u.team?` · ${u.team}`:''}</small></div></div>;
@@ -393,12 +399,15 @@ function Members({me,data}){
   if(f.id==='date')return <div className="member-layout-block" style={style}><label>วันที่<input type="date" value={d} onChange={e=>setDates(v=>({...v,[u.id]:e.target.value}))}/></label></div>;
   return <div className="member-layout-block availability-block" style={style}><span>●</span><b>{slots.length?slots.map(x=>`${x.start_time.slice(0,5)}–${x.end_time.slice(0,5)}`).join(' · '):'ยังไม่ได้ลงเวลาว่าง'}</b></div>;
  };
- return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid compact-member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);const visibleFields=fields.filter(f=>f.visible!==false);const maxRow=Math.max(1,...visibleFields.map(f=>(f.y||1)+(f.h||1)-1));const rowSize=24;const rowGap=3;const cardHeight=maxRow*rowSize+Math.max(0,maxRow-1)*rowGap;return <div className="member-card compact-member-card" key={u.id}><div className="member-card-layout" style={{gridTemplateRows:`repeat(${maxRow},${rowSize}px)`,minHeight:`${cardHeight}px`}}>{fields.map(f=>renderField(f,u,c,slots,d))}</div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
+ return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid compact-member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);const visibleFields=fields.filter(f=>f.visible!==false);const maxRow=Math.max(1,...visibleFields.map(f=>(f.y||1)+(f.h||1)-1));const rowSize=cardConfig.cellSize;const rowGap=3;const cardHeight=maxRow*rowSize+Math.max(0,maxRow-1)*rowGap;return <div className="member-card compact-member-card" key={u.id} style={{width:`${cardConfig.cardWidth}%`,justifySelf:'center'}}><div className="member-card-layout" style={{gridTemplateRows:`repeat(${maxRow},${rowSize}px)`,minHeight:`${cardHeight}px`,'--member-avatar-size':`${cardConfig.avatarSize}px`}}>{fields.map(f=>renderField(f,u,c,slots,d))}</div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
 }
 
 function LayoutManager({data,refresh}){
  const defaults={members:[{id:'identity',label:'ชื่อเล่น · ชื่อ-นามสกุล · ตำแหน่ง',x:4,y:1,w:9,h:2,visible:true,fontSize:16,fontWeight:700,textAlign:'left'},{id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:4,visible:true},{id:'bio',label:'แนะนำตัว',x:4,y:3,w:9,h:1,visible:true,fontSize:10,fontWeight:400,textAlign:'left'},{id:'basic',label:'ชั้น · วันเกิด',x:4,y:4,w:4,h:1,visible:true,fontSize:9,fontWeight:400,textAlign:'left'},{id:'date',label:'วันที่',x:8,y:4,w:5,h:1,visible:true,fontSize:9,fontWeight:400,textAlign:'right'},{id:'availability',label:'เวลาว่าง',x:4,y:5,w:9,h:1,visible:true,fontSize:9,fontWeight:500,textAlign:'left'}],checkin:[{id:'full_name',label:'ชื่อ-สกุล',x:1,y:1,w:5,h:1,visible:true},{id:'nickname',label:'ชื่อเล่น',x:6,y:1,w:3,h:1,visible:true},{id:'class_name',label:'ชั้น',x:9,y:1,w:2,h:1,visible:true},{id:'team',label:'ฝ่าย',x:11,y:1,w:2,h:1,visible:true},{id:'sort_no',label:'ลำดับ',x:1,y:2,w:2,h:1,visible:true},{id:'show_in_checkin',label:'แสดงในเช็คชื่อ',x:3,y:2,w:4,h:1,visible:true}]};
  const [kind,setKind]=useState('members'),[fields,setFields]=useState(defaults.members),[drag,setDrag]=useState(null),[selected,setSelected]=useState('identity'),[msg,setMsg]=useState('');
+ const savedMembers=(data.layoutConfigs||[]).find(x=>(x.target||x.key)==='members');
+ const savedCard=savedMembers?.config?.card||{};
+ const [card,setCard]=useState({cellSize:24,avatarSize:64,cardWidth:100,columns:2});
  function normalizeLayoutFields(list){
   const sorted=(list||[]).map(f=>({...f,x:Math.max(1,Math.min(12,f.x||1)),y:Math.max(1,f.y||1),w:Math.max(1,Math.min(12,f.w||1)),h:Math.max(1,f.h||1)}));
   const placed=[];
@@ -410,9 +419,9 @@ function LayoutManager({data,refresh}){
   }
   return sorted;
  }
- useEffect(()=>{const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)===kind);const raw=saved?.config?.fields?.length?saved.config.fields:defaults[kind];const next=kind==='members'?normalizeLayoutFields(raw):raw;setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null)},[kind,data.layoutConfigs]);
- function resetToDefault(){const next=(defaults[kind]||[]).map(f=>({...f}));setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null);setMsg('คืนค่าเริ่มต้นแล้ว — กดบันทึก Layout เพื่อใช้จริง');setTimeout(()=>setMsg(''),2200)}
- async function save(){const r=await supabase.from('layout_configs').upsert({target:kind,config:{fields},updated_at:new Date().toISOString()},{onConflict:'target'});if(r.error)alert(r.error.message);else{setMsg('บันทึกการแสดงผลแล้ว');await refresh();setTimeout(()=>setMsg(''),1800)}}
+ useEffect(()=>{const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)===kind);const raw=saved?.config?.fields?.length?saved.config.fields:defaults[kind];const next=kind==='members'?normalizeLayoutFields(raw):raw;setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null);if(kind==='members'){const c=saved?.config?.card||{};setCard({cellSize:Math.max(18,Math.min(40,Number(c.cellSize)||24)),avatarSize:Math.max(44,Math.min(100,Number(c.avatarSize)||64)),cardWidth:Math.max(70,Math.min(100,Number(c.cardWidth)||100)),columns:Math.max(1,Math.min(2,Number(c.columns)||2))})}},[kind,data.layoutConfigs]);
+ function resetToDefault(){const next=(defaults[kind]||[]).map(f=>({...f}));setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null);if(kind==='members')setCard({cellSize:24,avatarSize:64,cardWidth:100,columns:2});setMsg('คืนค่าเริ่มต้นแล้ว — กดบันทึก Layout เพื่อใช้จริง');setTimeout(()=>setMsg(''),2200)}
+ async function save(){const config=kind==='members'?{fields,card}:{fields};const r=await supabase.from('layout_configs').upsert({target:kind,config,updated_at:new Date().toISOString()},{onConflict:'target'});if(r.error)alert(r.error.message);else{setMsg('บันทึกการแสดงผลแล้ว');await refresh();setTimeout(()=>setMsg(''),1800)}}
  function toggle(id){setFields(v=>v.map(f=>f.id===id?{...f,visible:f.visible===false}:f))}
  function move(id,x,y){setFields(v=>v.map(f=>f.id===id?{...f,x,y}:f))}
  function styleField(id,patch){setFields(v=>v.map(f=>f.id===id?{...f,...patch}:f))}
@@ -455,6 +464,28 @@ function LayoutManager({data,refresh}){
             </button>
           </div>
         ))}
+
+        {kind==='members' && (
+          <div className="layout-style-panel layout-card-style-panel">
+            <b>ขนาดกรอบสมาชิก</b>
+            <label>
+              สเกลช่อง / ความสูงการ์ด
+              <div className="range-row"><input type="range" min="18" max="40" value={card.cellSize} onChange={e=>setCard(v=>({...v,cellSize:Number(e.target.value)}))}/><span>{card.cellSize}px</span></div>
+            </label>
+            <label>
+              ความกว้างกรอบ
+              <div className="range-row"><input type="range" min="70" max="100" value={card.cardWidth} onChange={e=>setCard(v=>({...v,cardWidth:Number(e.target.value)}))}/><span>{card.cardWidth}%</span></div>
+            </label>
+            <label>
+              จำนวนคอลัมน์
+              <select value={card.columns} onChange={e=>setCard(v=>({...v,columns:Number(e.target.value)}))}><option value={2}>2 คอลัมน์</option><option value={1}>1 คอลัมน์ · กรอบกว้าง</option></select>
+            </label>
+            <div className="layout-avatar-control">
+              <b>รูปโปรไฟล์</b>
+              <div className="range-row"><input type="range" min="44" max="100" value={card.avatarSize} onChange={e=>setCard(v=>({...v,avatarSize:Number(e.target.value)}))}/><span>{card.avatarSize}px</span></div>
+            </div>
+          </div>
+        )}
 
         {selectedField && (
           <div className="layout-style-panel">
@@ -510,7 +541,7 @@ function LayoutManager({data,refresh}){
           <b>Preview จริง</b>
           <small>ลากตำแหน่ง • คลิกเพื่อปรับตัวอักษร</small>
         </div>
-        <div className="layout-preview" style={{gridTemplateRows:`repeat(${previewRows},28px)`,minHeight:`${previewRows*28+(previewRows-1)*4+20}px`}} onDragOver={(e) => e.preventDefault()}>
+        <div className="layout-preview" style={{gridTemplateRows:`repeat(${previewRows},${kind==='members'?card.cellSize:28}px)`,minHeight:`${previewRows*(kind==='members'?card.cellSize:28)+(previewRows-1)*4+20}px`,'--preview-avatar-size':`${Math.max(30,Math.round(card.avatarSize*0.6))}px`}} onDragOver={(e) => e.preventDefault()}>
           {Array.from({ length: 72 }, (_, i) => {
             const x = (i % 12) + 1;
             const y = Math.floor(i / 12) + 1;
