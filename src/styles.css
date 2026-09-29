@@ -419,3 +419,15 @@ label>input,label>select,label>textarea{margin-top:8px}
 .layout-avatar-control>b{font-size:9px;color:#8fa3bd;font-weight:500}
 .member-card-layout .member-layout-avatar .avatar{width:var(--member-avatar-size,64px)!important;height:var(--member-avatar-size,64px)!important}
 .layout-preview-avatar{width:var(--preview-avatar-size,38px)!important;height:var(--preview-avatar-size,38px)!important}
+
+/* v2.9.2: locked check-in order + drag editor */
+.order-footer .secondary{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.order-editor-help{margin:0 0 10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#0b1321;color:var(--muted);font-size:11px}
+.checkin-order-editor{display:flex;flex-direction:column;gap:7px;max-height:55vh;overflow:auto;padding:2px}
+.checkin-order-drag-row{display:grid;grid-template-columns:28px 24px 42px minmax(0,1fr);gap:9px;align-items:center;padding:9px 10px;background:#0b1321;border:1px solid var(--line);border-radius:10px;cursor:grab;user-select:none}
+.checkin-order-drag-row:active{cursor:grabbing}
+.checkin-order-drag-row:hover{border-color:#35516f;background:#0e1828}
+.checkin-order-drag-row .avatar{width:40px;height:40px}
+.drag-handle{display:grid;place-items:center;color:#71839b}
+.order-modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+@media(max-width:600px){.order-modal-footer{flex-direction:column}.order-modal-footer button{width:100%;justify-content:center}}
