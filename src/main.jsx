@@ -375,12 +375,12 @@ function Members({me,data}){
  const rows=useMemo(()=>data.users.filter(u=>filter==='all'||u.team===filter).sort((a,b)=>positionRank(a)-positionRank(b)||displayName(a).localeCompare(displayName(b),'th')),[data.users,filter,teams]);
  const birthdayText=b=>b?new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'long',year:'numeric'}).format(new Date(b+'T00:00:00')):'ยังไม่ได้ระบุ';
  const defaultFields=[
-  {id:'identity',label:'ชื่อ / ตำแหน่ง',x:4,y:1,w:6,h:1,visible:true},
+  {id:'identity',label:'ชื่อเล่น · ชื่อ-นามสกุล · ตำแหน่ง',x:4,y:1,w:8,h:2,visible:true,fontSize:16,fontWeight:700,textAlign:'left'},
   {id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:3,visible:true},
-  {id:'bio',label:'แนะนำตัว',x:4,y:2,w:8,h:1,visible:true},
-  {id:'basic',label:'ชั้น · ชื่อเล่น · วันเกิด',x:4,y:3,w:8,h:1,visible:true},
-  {id:'date',label:'วันที่',x:1,y:4,w:4,h:1,visible:true},
-  {id:'availability',label:'เวลาว่าง',x:5,y:4,w:7,h:1,visible:true}
+  {id:'bio',label:'แนะนำตัว',x:4,y:3,w:8,h:1,visible:true,fontSize:10,fontWeight:400,textAlign:'left'},
+  {id:'basic',label:'ชั้น · วันเกิด',x:4,y:4,w:5,h:1,visible:true,fontSize:9,fontWeight:400,textAlign:'left'},
+  {id:'date',label:'วันที่',x:9,y:4,w:3,h:1,visible:true,fontSize:9,fontWeight:400,textAlign:'right'},
+  {id:'availability',label:'เวลาว่าง',x:4,y:5,w:8,h:1,visible:true,fontSize:9,fontWeight:500,textAlign:'left'}
  ];
  const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)==='members');
  const fields=Array.isArray(saved?.config?.fields)&&saved.config.fields.length?saved.config.fields:defaultFields;
@@ -393,11 +393,11 @@ function Members({me,data}){
   if(f.id==='date')return <div className="member-layout-block" style={style}><label>วันที่<input type="date" value={d} onChange={e=>setDates(v=>({...v,[u.id]:e.target.value}))}/></label></div>;
   return <div className="member-layout-block availability-block" style={style}><span>●</span><b>{slots.length?slots.map(x=>`${x.start_time.slice(0,5)}–${x.end_time.slice(0,5)}`).join(' · '):'ยังไม่ได้ลงเวลาว่าง'}</b></div>;
  };
- return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid compact-member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);const maxRow=Math.max(1,...fields.filter(f=>f.visible!==false).map(f=>(f.y||1)+(f.h||1)-1));return <div className="member-card compact-member-card" key={u.id}><div className="member-card-layout" style={{gridTemplateRows:`repeat(${maxRow},22px)`}}>{fields.map(f=>renderField(f,u,c,slots,d))}</div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
+ return <section><div className="section-top"><div><h2>👥 สมาตุ้ยทั้งหมด</h2><p>ข้อมูลสมาชิกจากบัญชีในเว็บและข้อมูลที่เชื่อมกับฐานข้อมูลเช็คชื่อ</p></div></div><div className="member-team-filter"><button className={filter==='all'?'active':''} onClick={()=>setFilter('all')}>ทั้งหมด</button>{teams.map(t=><button key={t} className={filter===t?'active':''} onClick={()=>setFilter(t)}>{t}</button>)}</div><div className="member-grid compact-member-grid">{rows.map(u=>{const d=dates[u.id]||todayISO();const slots=data.avail.filter(a=>a.user_id===u.id&&a.date===d);const c=checkinByUser.get(u.id);const visibleFields=fields.filter(f=>f.visible!==false);const maxRow=Math.max(1,...visibleFields.map(f=>(f.y||1)+(f.h||1)-1));const rowSize=26;const cardHeight=maxRow*rowSize+Math.max(0,maxRow-1)*4;return <div className="member-card compact-member-card" key={u.id}><div className="member-card-layout" style={{gridTemplateRows:`repeat(${maxRow},${rowSize}px)`,minHeight:`${cardHeight}px`}}>{fields.map(f=>renderField(f,u,c,slots,d))}</div></div>})}</div>{!rows.length&&<div className="empty">ยังไม่มีสมาชิกในฝ่ายนี้</div>}</section>
 }
 
 function LayoutManager({data,refresh}){
- const defaults={members:[{id:'identity',label:'ชื่อเล่น · ชื่อ-นามสกุล · ตำแหน่ง',x:4,y:1,w:8,h:2,visible:true},{id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:3,visible:true},{id:'bio',label:'แนะนำตัว',x:4,y:3,w:8,h:1,visible:true},{id:'basic',label:'ชั้น · วันเกิด',x:4,y:4,w:5,h:1,visible:true},{id:'date',label:'วันที่',x:9,y:4,w:3,h:1,visible:true},{id:'availability',label:'เวลาว่าง',x:4,y:5,w:8,h:1,visible:true}],checkin:[{id:'full_name',label:'ชื่อ-สกุล',x:1,y:1,w:5,h:1,visible:true},{id:'nickname',label:'ชื่อเล่น',x:6,y:1,w:3,h:1,visible:true},{id:'class_name',label:'ชั้น',x:9,y:1,w:2,h:1,visible:true},{id:'team',label:'ฝ่าย',x:11,y:1,w:2,h:1,visible:true},{id:'sort_no',label:'ลำดับ',x:1,y:2,w:2,h:1,visible:true},{id:'show_in_checkin',label:'แสดงในเช็คชื่อ',x:3,y:2,w:4,h:1,visible:true}]};
+ const defaults={members:[{id:'identity',label:'ชื่อเล่น · ชื่อ-นามสกุล · ตำแหน่ง',x:4,y:1,w:8,h:2,visible:true,fontSize:16,fontWeight:700,textAlign:'left'},{id:'avatar',label:'รูปโปรไฟล์',x:1,y:1,w:3,h:3,visible:true},{id:'bio',label:'แนะนำตัว',x:4,y:3,w:8,h:1,visible:true,fontSize:10,fontWeight:400,textAlign:'left'},{id:'basic',label:'ชั้น · วันเกิด',x:4,y:4,w:5,h:1,visible:true,fontSize:9,fontWeight:400,textAlign:'left'},{id:'date',label:'วันที่',x:9,y:4,w:3,h:1,visible:true,fontSize:9,fontWeight:400,textAlign:'right'},{id:'availability',label:'เวลาว่าง',x:4,y:5,w:8,h:1,visible:true,fontSize:9,fontWeight:500,textAlign:'left'}],checkin:[{id:'full_name',label:'ชื่อ-สกุล',x:1,y:1,w:5,h:1,visible:true},{id:'nickname',label:'ชื่อเล่น',x:6,y:1,w:3,h:1,visible:true},{id:'class_name',label:'ชั้น',x:9,y:1,w:2,h:1,visible:true},{id:'team',label:'ฝ่าย',x:11,y:1,w:2,h:1,visible:true},{id:'sort_no',label:'ลำดับ',x:1,y:2,w:2,h:1,visible:true},{id:'show_in_checkin',label:'แสดงในเช็คชื่อ',x:3,y:2,w:4,h:1,visible:true}]};
  const [kind,setKind]=useState('members'),[fields,setFields]=useState(defaults.members),[drag,setDrag]=useState(null),[selected,setSelected]=useState('identity'),[msg,setMsg]=useState('');
  function normalizeLayoutFields(list){
   const sorted=(list||[]).map(f=>({...f,x:Math.max(1,Math.min(12,f.x||1)),y:Math.max(1,f.y||1),w:Math.max(1,Math.min(12,f.w||1)),h:Math.max(1,f.h||1)}));
@@ -411,6 +411,7 @@ function LayoutManager({data,refresh}){
   return sorted;
  }
  useEffect(()=>{const saved=(data.layoutConfigs||[]).find(x=>(x.target||x.key)===kind);const raw=saved?.config?.fields?.length?saved.config.fields:defaults[kind];const next=kind==='members'?normalizeLayoutFields(raw):raw;setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null)},[kind,data.layoutConfigs]);
+ function resetToDefault(){const next=(defaults[kind]||[]).map(f=>({...f}));setFields(next);setSelected(next.find(f=>f.visible!==false)?.id||next[0]?.id||null);setMsg('คืนค่าเริ่มต้นแล้ว — กดบันทึก Layout เพื่อใช้จริง');setTimeout(()=>setMsg(''),2200)}
  async function save(){const r=await supabase.from('layout_configs').upsert({target:kind,config:{fields},updated_at:new Date().toISOString()},{onConflict:'target'});if(r.error)alert(r.error.message);else{setMsg('บันทึกการแสดงผลแล้ว');await refresh();setTimeout(()=>setMsg(''),1800)}}
  function toggle(id){setFields(v=>v.map(f=>f.id===id?{...f,visible:f.visible===false}:f))}
  function move(id,x,y){setFields(v=>v.map(f=>f.id===id?{...f,x,y}:f))}
@@ -418,6 +419,8 @@ function LayoutManager({data,refresh}){
  const selectedField=fields.find(f=>f.id===selected);
  const previewFields=fields.filter(f=>f.visible!==false);
  const previewText=(f)=>({identity:'กอตอ\nชื่อ-นามสกุล\nประธานฝ่าย',avatar:'รูป',bio:'แนะนำตัวสั้น ๆ',basic:'ชั้น ม.6   วันเกิด 12 ต.ค.',date:'29/09/2026',availability:'● 17:00–20:00'})[f.id]||f.label;
+ const previewMaxRow=Math.max(1,...previewFields.map(f=>(f.y||1)+(f.h||1)-1));
+ const previewRows=Math.max(5,previewMaxRow);
  const clampField=(f,patch)=>{const next={...f,...patch};next.x=Math.max(1,Math.min(12,next.x||1));next.y=Math.max(1,Math.min(10,next.y||1));next.w=Math.max(1,Math.min(12-next.x+1,next.w||1));next.h=Math.max(1,Math.min(6,next.h||1));return next};
  return (
   <section className="layout-manager">
@@ -426,7 +429,7 @@ function LayoutManager({data,refresh}){
         <h2>🎛️ การแสดงผล</h2>
         <p>ลากองค์ประกอบเพื่อจัดตำแหน่ง และคลิกองค์ประกอบเพื่อปรับตัวอักษร</p>
       </div>
-      <button className="primary" onClick={save}><Save />บันทึก Layout</button>
+      <div className="layout-actions"><button className="secondary" onClick={resetToDefault}>↺ ค่าเริ่มต้น</button><button className="primary" onClick={save}><Save />บันทึก Layout</button></div>
     </div>
 
     <div className="seg-tabs">
@@ -507,7 +510,7 @@ function LayoutManager({data,refresh}){
           <b>Preview จริง</b>
           <small>ลากตำแหน่ง • คลิกเพื่อปรับตัวอักษร</small>
         </div>
-        <div className="layout-preview" onDragOver={(e) => e.preventDefault()}>
+        <div className="layout-preview" style={{gridTemplateRows:`repeat(${previewRows},28px)`,minHeight:`${previewRows*28+(previewRows-1)*4+20}px`}} onDragOver={(e) => e.preventDefault()}>
           {Array.from({ length: 72 }, (_, i) => {
             const x = (i % 12) + 1;
             const y = Math.floor(i / 12) + 1;
