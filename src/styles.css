@@ -509,3 +509,24 @@ label>input,label>select,label>textarea{margin-top:8px}
   .header-brand-logo{width:30px;height:30px;flex-basis:30px}
   .header-brand{font-size:11px;gap:5px}
 }
+
+
+/* v2.9.2 login + full-logo polish — visual-only */
+.auth-card{border-radius:30px;padding:30px;overflow:hidden}
+.auth-brand{border-radius:20px}
+.auth-logo{object-fit:contain;object-position:center;width:235px;height:140px;border-radius:18px}
+.auth-tabs{border-radius:15px;padding:5px}
+.auth-tabs button{border-radius:12px;padding:11px 9px}
+.auth input{border-radius:14px;padding:12px 13px}
+.auth .primary{border-radius:14px}
+.brand-logo-wrap .brand-mark,.header-brand-logo,.mobile-brand .mobile-logo{object-fit:contain;object-position:center;background:transparent}
+.brand-logo-wrap .brand-mark{width:38px;height:38px;flex-basis:38px;border-radius:9px}
+.header-brand-logo{width:38px;height:38px;flex-basis:38px;border-radius:9px}
+.mobile-brand .mobile-logo{width:34px;height:34px;flex-basis:34px;border-radius:8px}
+@media(max-width:800px){
+  .auth-card{border-radius:28px;padding:24px}
+  .auth-logo{width:210px;height:130px}
+  .brand-logo-wrap .brand-mark{width:32px;height:32px;flex-basis:32px}
+  .header-brand-logo{width:32px;height:32px;flex-basis:32px}
+  .mobile-brand .mobile-logo{width:32px;height:32px;flex-basis:32px}
+}
