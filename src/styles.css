@@ -530,3 +530,12 @@ label>input,label>select,label>textarea{margin-top:8px}
   .header-brand-logo{width:32px;height:32px;flex-basis:32px}
   .mobile-brand .mobile-logo{width:32px;height:32px;flex-basis:32px}
 }
+
+/* v2.9.2 — latest login logo + header wordmark vertical alignment */
+.header-brand{align-items:center;line-height:1;}
+.header-brand span{display:flex;align-items:center;height:38px;}
+.header-brand .app-version{display:flex;align-items:center;height:38px;}
+@media(max-width:800px){
+  .header-brand span{height:32px;}
+  .header-brand .app-version{height:32px;}
+}
