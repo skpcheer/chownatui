@@ -472,3 +472,20 @@ label>input,label>select,label>textarea{margin-top:8px}
   .member-mini-info span{font-size:7px!important}
   .member-mini-info b{font-size:8px!important}
 }
+
+/* CHOWNATUI site logo — visual-only change */
+.brand-logo-wrap{display:flex;align-items:center;gap:7px;min-height:58px}
+.site-logo{display:block;object-fit:contain;object-position:center;mix-blend-mode:normal}
+.brand-logo-wrap .site-logo{width:178px;height:58px;border-radius:10px}
+.brand-logo-wrap .app-version{margin-left:auto}
+.auth-brand{display:flex;justify-content:center;margin-bottom:6px}
+.auth-logo{width:235px;height:112px;border-radius:14px}
+.mobile-brand{align-items:center}
+.mobile-logo{width:106px;height:48px;border-radius:9px}
+@media(max-width:800px){.mobile-brand{display:flex}.mobile-logo{width:104px;height:46px}.brand-logo-wrap{min-height:48px}.brand-logo-wrap .site-logo{width:155px;height:50px}}
+
+/* CHOWNATUI v2.9.2 — latest logo, visual-only */
+.header-actions{display:flex;align-items:center;gap:9px}
+.header-brand{display:flex;align-items:center;gap:7px;color:#eaf2ff;font-weight:800;font-size:13px;letter-spacing:.02em;margin-right:2px}
+.header-brand-logo{width:42px;height:42px;display:block;object-fit:contain;border-radius:8px}
+@media(max-width:800px){.header-brand{font-size:11px;gap:5px}.header-brand-logo{width:36px;height:36px}.header-actions{gap:6px}}

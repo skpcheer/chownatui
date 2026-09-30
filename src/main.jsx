@@ -116,7 +116,7 @@ function App(){
  useEffect(()=>{if(!supabase){setError('ยังไม่ได้ตั้งค่า Supabase');setLoading(false);return}
   supabase.auth.getSession().then(async({data})=>{setSession(data.session);if(data.session){try{const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===data.session.user.id)||null)}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}}setLoading(false)});
   const {data:l}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);if(!s){setProfile(null);setData({users:[],avail:[],dayStatus:[],appointments:[],plans:[],topics:[],duties:[],attendance:[],cleaning:[],checkins:[],settings:[],customRoles:[],teamOptions:[],planMembers:[],appointmentMembers:[],planSlots:[],notifications:[],announcements:[],layoutConfigs:[]});return}setTimeout(async()=>{try{const d=await loadData();setData(d);setProfile(d.users.find(x=>x.id===s.user.id)||null);setError('')}catch(e){setError(e.message||'โหลดข้อมูลไม่สำเร็จ')}},0)});return()=>l.subscription.unsubscribe()},[]);
- if(loading)return <div className="auth"><div className="auth-card"><div className="brand">chownatui<span>.</span></div><p className="tag">กำลังเชื่อมต่อระบบ...</p></div></div>;
+ if(loading)return <div className="auth"><div className="auth-card"><div className="brand auth-brand"><img className="site-logo auth-logo" src="/chownatui-logo.png" alt="CHOWNATUI"/></div><p className="tag">กำลังเชื่อมต่อระบบ...</p></div></div>;
  if(!session||!profile)return <Auth mode={authMode} setMode={setAuthMode} error={error} setError={setError}/>;
  return <Dashboard me={profile} data={data} refresh={refresh} setProfile={setProfile} error={error} logout={async()=>{await supabase.auth.signOut();setSession(null)}}/>;
 }
@@ -148,7 +148,7 @@ function Auth({mode,setMode,error,setError}){
    else setMsg('สมัครสำเร็จ กรุณาติดต่อผู้ดูแลหากยังไม่สามารถเข้าสู่ระบบได้');
   }
  }catch(e){setError(e.message||'เกิดข้อผิดพลาด')}finally{setBusy(false)}}
- return <div className="auth"><div className="auth-card"><div className="brand">chownatui<span>.</span></div><p className="tag">จัดการเวลาของทีมให้ง่ายกว่าเดิม</p>
+ return <div className="auth"><div className="auth-card"><div className="brand auth-brand"><img className="site-logo auth-logo" src="/chownatui-logo.png" alt="CHOWNATUI"/></div><p className="tag">จัดการเวลาของทีมให้ง่ายกว่าเดิม</p>
   <div className="auth-tabs"><button className={mode==='login'?'active':''} onClick={()=>{setMode('login');setError('')}}>เข้าสู่ระบบ</button><button className={mode==='signup'?'active':''} onClick={()=>{setMode('signup');setError('')}}>สมัครสมาชิก</button></div>
   <form onSubmit={submit}>{mode==='signup'&&<label>ชื่อที่จะแสดง<input value={name} onChange={e=>setName(e.target.value)} placeholder="เช่น กอตอ" required/></label>}
   <label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required/></label>
@@ -178,9 +178,9 @@ function Dashboard({me,data,refresh,setProfile,logout}){
  ];
  const title=nav.find(x=>x[0]===page)?.[1]||'หน้าหลัก';
  const go=p=>{setPage(p);setMobileOpen(false)};
- return <div className="app"><aside><div className="brand side">CHOWNATUI <small className="app-version">v.2.9.2</small></div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
+ return <div className="app"><aside><div className="brand side brand-logo-wrap"><img className="site-logo" src="/chownatui-logo.png" alt="CHOWNATUI"/><small className="app-version">v.2.9.2</small></div>{nav.map(([id,t,I])=><button className={page===id?'nav active':'nav'} key={id} onClick={()=>go(id)}><I size={19}/>{t}</button>)}
   <div className="side-bottom"><div className="me"><Avatar user={me}/><div><b>{me.display_name}</b><small>{me.department_position||roleLabel(me,data)}{me.team?` · ${me.team}`:''}</small></div></div><button className="nav" onClick={logout}><LogOut size={18}/>ออกจากระบบ</button></div></aside>
-  <main><header><div><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)}><Menu/></button><div className="mobile-brand">chownatui<span>.</span></div><h1>{title}</h1></div><div className="header-actions"><NotificationBell me={me} data={data} refresh={refresh}/><button className="icon-btn" onClick={()=>go('settings')}><Settings size={18}/></button></div></header>
+  <main><header><div><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)}><Menu/></button><div className="mobile-brand"><img className="site-logo mobile-logo" src="/chownatui-logo.png" alt="CHOWNATUI"/></div><h1>{title}</h1></div><div className="header-actions"><div className="header-brand"><span>CHOWNATUI</span><img className="header-brand-logo" src="/chownatui-logo.png" alt="CHOWNATUI logo"/></div><NotificationBell me={me} data={data} refresh={refresh}/><button className="icon-btn" onClick={()=>go('settings')}><Settings size={18}/></button></div></header>
   {mobileOpen&&<div className="mobile-drawer">{nav.map(([id,t,I])=><button className={page===id?'active':''} key={id} onClick={()=>go(id)}><I size={17}/>{t}</button>)}</div>}
   {page==='home'&&<Home me={me} data={data} date={date} setDate={setDate} go={go}/>}
   {page==='calendar'&&<CalendarPage me={me} data={data} date={date} setDate={setDate}/>}
