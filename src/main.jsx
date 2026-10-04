@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import './styles.css';
 import loginLogoUrl from '../login-logo.png';
-import brandLogoUrl from '../chownatui-mark.png';
+import brandLogoUrl from '../chownatui-logo.png';
 
 const URL=import.meta.env.VITE_SUPABASE_URL, KEY=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const supabase=(URL&&KEY)?createClient(URL,KEY):null;
